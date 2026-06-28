@@ -47,22 +47,21 @@ def load_jpx_list():
         "その他"
     )
 
-    # ★【追加】常に銘柄コードを「数値として小さい順（昇順）」に100%固定して並び替える
+    # コードの小さい順に固定
     df = df.sort_values(by="code", ascending=True)
 
     return df[["code", "name", "market", "sector17"]]
 
 
 def fetch_real_data(ticker, interval="1d", period=None):
-
     # interval に応じて期間を自動設定
     if period is None:
         if interval == "1d":
-            period = "3mo"   # ★ 日足は3か月
+            period = "3mo"
         elif interval == "1wk":
-            period = "1y"    # ★ 週足は1年（好みで変更可）
+            period = "1y"
         elif interval == "1mo":
-            period = "5y"    # ★ 月足は5年（好みで変更可）
+            period = "5y"
 
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
@@ -70,12 +69,18 @@ def fetch_real_data(ticker, interval="1d", period=None):
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
     df = df.reset_index()
-    df.columns = df.columns.get_level_values(0)
+
+    # Date / Datetime のどちらかを使う
+    if "Date" in df.columns:
+        date_col = "Date"
+    elif "Datetime" in df.columns:
+        date_col = "Datetime"
+    else:
+        # 万一どちらもない場合はそのまま返す
+        raise ValueError("日付列が見つかりませんでした")
 
     ohlc = []
     for _, row in df.iterrows():
-        date_col = "Date" if "Date" in row else "Datetime"
-
         ohlc.append({
             "time": row[date_col].strftime("%Y-%m-%d"),
             "open": float(row["Open"]),
@@ -302,51 +307,37 @@ def index():
                 }
             });
 
-
-
             // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
 
-                // 1. ボタンを押した「今この瞬間」に選ばれている最新の条件をすべて取得する
                 const nextMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
                 const nextSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
                 
                 const checkedInterval = document.querySelector("input[name='interval']:checked");
                 const nextInterval = checkedInterval ? checkedInterval.value : "1d";
 
-                // 2. 「足種だけ」が変わったのかどうかを厳密にチェックする
-                // (市場や業種がさっきと変わっているか、または足種がさっきと同じかを判定します)
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
                 const isIntervalSame = currentInterval === nextInterval;
                 const isInitial = document.getElementById("app").innerHTML === "";
 
-                // 次回の比較のために最新の条件を変数に保存しておく
                 selectedMarkets = nextMarkets;
                 selectedSectors = nextSectors;
 
-                // 業種選択エリアを閉じる
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                // 3. 【分かれ道 A】以下のいずれかに当てはまる場合は、画面を完全にリセットして「一番番号の小さい銘柄」から出し直す
-                // ・初めて起動したとき (isInitial)
-                // ・市場区分や業種のチェックを切り替えたとき (isMarketChanged || isSectorChanged)
-                // ・★【ご希望の動き】条件を何も変えずにボタンを押したとき、または足種も変えずにボタンを押したとき (isIntervalSame)
                 if (isInitial || isMarketChanged || isSectorChanged || isIntervalSame) {
-                    currentInterval = nextInterval; // 最新の足種を保存
+                    currentInterval = nextInterval;
 
                     document.getElementById("app").innerHTML = "";
                     document.getElementById("loading").innerText = "読み込み中...";
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
-                } 
-                // 4. 【分かれ道 B】市場や業種は一切変えず、【足種（日・週・月）だけ】を変更してボタンを押した場合
-                // ➔ 最初の銘柄に戻らず、今画面に並んでいるすべての銘柄の足種をその場で書き換えます
-                else {
-                    currentInterval = nextInterval; // 最新の足種を保存
+                } else {
+                    currentInterval = nextInterval;
 
                     const containers = document.querySelectorAll(".chart-container");
                     
@@ -354,16 +345,12 @@ def index():
                         const titleElement = container.querySelector(".chart-title");
                         const area = container.querySelector(".chart-area");
                         
-                        // タイトルのテキストを取得（例：「7203 トヨタ自動車」）
                         const titleText = titleElement.innerText.trim();
-                        
-                        // 最初の空白で区切って、確実に対象の「4桁のコード（例: 7203）」だけを取り出す
-                        const tickerCode = titleText.split(" "); 
+                        // 先頭のコードだけを取り出す
+                        const tickerCode = titleText.split(" ")[0];
 
-                        // チャート表示エリアを一度クリアし、更新中の文字を出す
                         area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-                        // 新しい足種データをPython側から取得して同じ場所に再描画
                         fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
@@ -371,7 +358,7 @@ def index():
                                     area.innerText = "データ取得エラー";
                                     return;
                                 }
-                                area.innerHTML = ""; // 文字をクリア
+                                area.innerHTML = "";
 
                                 const chart = LightweightCharts.createChart(area, {
                                     layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
@@ -400,8 +387,6 @@ def index():
                     });
                 }
             });
-
-
 
             async function loadNextPage() {
                 if (!drawing) return;
@@ -464,31 +449,26 @@ def index():
 
                 app.appendChild(box);
 
-		// PC の click
-		area.addEventListener("click", () => {
-		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-		});
+                // PC の click
+                area.addEventListener("click", () => {
+                    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+                });
 
-	// --- スマホの誤タップ防止付きリンク処理 ---
-let touchStartY = 0;
-let touchEndY = 0;
+                // スマホ誤タップ防止
+                let touchStartY = 0;
+                let touchEndY = 0;
 
-// タッチ開始位置を記録
-area.addEventListener("touchstart", (e) => {
-    touchStartY = e.changedTouches[0].clientY;
-});
+                area.addEventListener("touchstart", (e) => {
+                    touchStartY = e.changedTouches[0].clientY;
+                });
 
-// タッチ終了位置を記録して、移動量が小さい場合だけリンクを開く
-area.addEventListener("touchend", (e) => {
-    touchEndY = e.changedTouches[0].clientY;
-
-    const diff = Math.abs(touchEndY - touchStartY);
-
-    // 20px以内なら「タップ」とみなす（スワイプではない）
-    if (diff < 20) {
-        window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-    }
-});
+                area.addEventListener("touchend", (e) => {
+                    touchEndY = e.changedTouches[0].clientY;
+                    const diff = Math.abs(touchEndY - touchStartY);
+                    if (diff < 20) {
+                        window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+                    }
+                });
 
                 try {
                     const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
@@ -559,21 +539,13 @@ def api_list():
             lambda x: isinstance(x, str) and any(m in x for m in markets)
         )]
 
-
     if sectors and sectors != [""]:
         df = df[df["sector17"].apply(
             lambda x: isinstance(x, str) and any(s in x for s in sectors)
         )]
 
-    # ★【最重要修正】絞り込みで崩れてしまった並び順を、データを出力する直前で「コードの小さい順」に再度ガチガチにロックする
+    # 絞り込み後もコード順を維持
     df = df.sort_values(by="code", ascending=True)
-
-    start = (page - 1) * per_page
-    end = start + per_page
-
-    data = df.iloc[start:end].to_dict(orient="records")
-    return jsonify({"data": data})
-
 
     start = (page - 1) * per_page
     end = start + per_page
@@ -595,6 +567,5 @@ def api_chart():
 
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
