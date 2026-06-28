@@ -84,7 +84,6 @@ def fetch_real_data(ticker, interval="1d", period="5y"):
 def index():
     return render_template("index.html")
 
-        <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
         <style>
             body {
