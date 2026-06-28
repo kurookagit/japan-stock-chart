@@ -47,6 +47,9 @@ def load_jpx_list():
         "その他"
     )
 
+    # ★【追加】常に銘柄コードを「数値として小さい順（昇順）」に100%固定して並び替える
+    df = df.sort_values(by="code", ascending=True)
+
     return df[["code", "name", "market", "sector17"]]
 
 
@@ -305,18 +308,21 @@ def index():
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
 
-                // 1. ボタンを押した「今この瞬間」に選ばれている最新の条件を取得する
+                // 1. ボタンを押した「今この瞬間」に選ばれている最新の条件をすべて取得する
                 const nextMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
                 const nextSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
                 
                 const checkedInterval = document.querySelector("input[name='interval']:checked");
                 const nextInterval = checkedInterval ? checkedInterval.value : "1d";
 
-                // 2. 「市場」または「業種」が、前回と比べて本当に変わったかを比較する
+                // 2. 「足種だけ」が変わったのかどうかを厳密にチェックする
+                // (市場や業種がさっきと変わっているか、または足種がさっきと同じかを判定します)
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
+                const isIntervalSame = currentInterval === nextInterval;
+                const isInitial = document.getElementById("app").innerHTML === "";
 
-                // 3. 次回の比較のために最新の条件を保存しておく
+                // 次回の比較のために最新の条件を変数に保存しておく
                 selectedMarkets = nextMarkets;
                 selectedSectors = nextSectors;
 
@@ -324,9 +330,11 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                // 4. 【市場区分や業種が「変わった」場合】または【足種が前回と同じ（普通のクリック）の場合】
-                // ➔ 画面を完全にリセットして、新しい業種の1ページ目から正しく読み直します
-                if (isMarketChanged || isSectorChanged || currentInterval === nextInterval) {
+                // 3. 【分かれ道 A】以下のいずれかに当てはまる場合は、画面を完全にリセットして「一番番号の小さい銘柄」から出し直す
+                // ・初めて起動したとき (isInitial)
+                // ・市場区分や業種のチェックを切り替えたとき (isMarketChanged || isSectorChanged)
+                // ・★【ご希望の動き】条件を何も変えずにボタンを押したとき、または足種も変えずにボタンを押したとき (isIntervalSame)
+                if (isInitial || isMarketChanged || isSectorChanged || isIntervalSame) {
                     currentInterval = nextInterval; // 最新の足種を保存
 
                     document.getElementById("app").innerHTML = "";
@@ -335,7 +343,7 @@ def index():
                     globalIndex = 0;
                     loadNextPage();
                 } 
-                // 5. 【市場や業種は一切変えず、「足種だけ」が変わっていた場合】
+                // 4. 【分かれ道 B】市場や業種は一切変えず、【足種（日・週・月）だけ】を変更してボタンを押した場合
                 // ➔ 最初の銘柄に戻らず、今画面に並んでいるすべての銘柄の足種をその場で書き換えます
                 else {
                     currentInterval = nextInterval; // 最新の足種を保存
@@ -350,7 +358,7 @@ def index():
                         const titleText = titleElement.innerText.trim();
                         
                         // 最初の空白で区切って、確実に対象の「4桁のコード（例: 7203）」だけを取り出す
-                        const tickerCode = titleText.split(" ")[0]; 
+                        const tickerCode = titleText.split(" "); 
 
                         // チャート表示エリアを一度クリアし、更新中の文字を出す
                         area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
