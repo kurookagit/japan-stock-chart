@@ -300,7 +300,6 @@ def index():
             });
 
 
-
             // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
@@ -312,12 +311,13 @@ def index():
                 const checkedInterval = document.querySelector("input[name='interval']:checked");
                 const nextInterval = checkedInterval ? checkedInterval.value : "1d";
 
-                // 2. 「市場」または「業種」が前回と変わったかをチェックする
-                // (JSON.stringifyを使うことで、配列の中身が完全に一致しているかを調べられます)
+                // 2. 1回目（画面が空っぽ）か、市場・業種の条件が前回と変わったかをチェックする
+                // (初回起動時は selectedMarkets が空の配列 [] なので、正しく「変更あり」と判定されます)
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
+                const isInitial = document.getElementById("app").innerHTML === "";
 
-                // 3. 次回の比較のために、今の最新条件を変数に保存しておく
+                // ★【最重要修正】次回の比較のために、今回の最新条件を変数に確実に保存（上書き）する
                 selectedMarkets = nextMarkets;
                 selectedSectors = nextSectors;
                 currentInterval = nextInterval;
@@ -326,16 +326,16 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                // 4. 【分かれ道 A】画面にチャートがない、または市場・業種の条件が変わった場合
+                // 3. 【分かれ道 A】初めての起動、または市場・業種の条件が変わった場合
                 // ➔ 画面をリセットして1ページ目から新しく読み直す
-                if (document.getElementById("app").innerHTML === "" || isMarketChanged || isSectorChanged) {
+                if (isInitial || isMarketChanged || isSectorChanged) {
                     document.getElementById("app").innerHTML = "";
                     document.getElementById("loading").innerText = "読み込み中...";
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
                 } 
-                // 5. 【分かれ道 B】市場や業種は変えず、「足種だけ」を変更してボタンを押した場合
+                // 4. 【分かれ道 B】市場や業種は変えず、「足種だけ」を変更してボタンを押した場合
                 // ➔ 最初の銘柄に戻らず、今画面に並んでいるすべての銘柄の足種をその場で書き換える
                 else {
                     const containers = document.querySelectorAll(".chart-container");
@@ -346,7 +346,7 @@ def index():
                         
                         // タイトル（例：「7203 トヨタ自動車」）から最初の4桁のコードを安全に抜き出す
                         const titleText = titleElement.innerText;
-                        const code = titleText.split(" ")[0]; // 空白で区切った最初の要素（4桁の数字）を確実に取得
+                        const code = titleText.split(" ")[0]; // 1番目の要素（4桁の数字）を確実に取得
 
                         // 既存のチャートを一旦消去し、更新中の文字を出す
                         area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
