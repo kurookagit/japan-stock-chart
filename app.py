@@ -303,52 +303,67 @@ def index():
 
             // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
-                // 1. 今画面にあるチャートコンテナ（.chart-container）の数を直接数える
-                const currentChartCount = document.querySelectorAll(".chart-container").length;
+                drawing = true;
+
+                // 1. ボタンを押した「今この瞬間」に選ばれている最新の条件を取得する
+                const nextMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
+                const nextSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
+                
+                const checkedInterval = document.querySelector("input[name='interval']:checked");
+                const nextInterval = checkedInterval ? checkedInterval.value : "1d";
+
+                // 2. 「市場」または「業種」が、前回と比べて本当に変わったかを比較する
+                const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
+                const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
+
+                // 3. 次回の比較のために最新の条件を保存しておく
+                selectedMarkets = nextMarkets;
+                selectedSectors = nextSectors;
 
                 // 業種選択エリアを閉じる
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                // 2. 【もし画面にチャートが1つもない（初回起動）の場合】
-                // または【今チェックを入れている市場や業種の条件を新しく反映させたい場合】
-                // ➔ 条件変更時は「普通に描画開始を押す」動きになり、画面を一度クリアして新しく読み直します
-                if (currentChartCount === 0 || !drawing) {
-                    drawing = true;
+                // 4. 【市場区分や業種が「変わった」場合】または【足種が前回と同じ（普通のクリック）の場合】
+                // ➔ 画面を完全にリセットして、新しい業種の1ページ目から正しく読み直します
+                if (isMarketChanged || isSectorChanged || currentInterval === nextInterval) {
+                    currentInterval = nextInterval; // 最新の足種を保存
+
                     document.getElementById("app").innerHTML = "";
                     document.getElementById("loading").innerText = "読み込み中...";
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
                 } 
-                // 3. 【画面にすでにチャートが並んでいて、足種（日・週・月）だけを変えたい場合】
-                // ➔ あなたがやりたかった「最初の銘柄に戻らず、今見えている銘柄のまま足種を変える」動きです
+                // 5. 【市場や業種は一切変えず、「足種だけ」が変わっていた場合】
+                // ➔ 最初の銘柄に戻らず、今画面に並んでいるすべての銘柄の足種をその場で書き換えます
                 else {
+                    currentInterval = nextInterval; // 最新の足種を保存
+
                     const containers = document.querySelectorAll(".chart-container");
                     
                     containers.forEach(container => {
                         const titleElement = container.querySelector(".chart-title");
                         const area = container.querySelector(".chart-area");
                         
-                        // タイトル（例：「7203 トヨタ自動車」）の文字をそのまま取得
-                        const titleText = titleElement.innerText;
+                        // タイトルのテキストを取得（例：「7203 トヨタ自動車」）
+                        const titleText = titleElement.innerText.trim();
                         
-                        // タイトルの最初の空白より前の部分（＝4桁のコード）だけを確実に抜き出す
-                        // (もし空白がなくても、最初の4文字を切り取るので100%安全にコードが取れます)
-                        const code = titleText.indexOf(" ") !== -1 ? titleText.split(" ")[0] : titleText.substring(0, 4);
+                        // 最初の空白で区切って、確実に対象の「4桁のコード（例: 7203）」だけを取り出す
+                        const tickerCode = titleText.split(" ")[0]; 
 
-                        // チャート表示エリアを一度クリアして、更新中の文字を出す
+                        // チャート表示エリアを一度クリアし、更新中の文字を出す
                         area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-                        // 新しい足種でPythonから株価を取得して、同じ場所に再描画する
-                        fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`)
+                        // 新しい足種データをPython側から取得して同じ場所に再描画
+                        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
                                 if (!json.data) {
                                     area.innerText = "データ取得エラー";
                                     return;
                                 }
-                                area.innerHTML = ""; // 文字を消す
+                                area.innerHTML = ""; // 文字をクリア
 
                                 const chart = LightweightCharts.createChart(area, {
                                     layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
