@@ -365,9 +365,15 @@ def index():
 
                 app.appendChild(box);
 
-                area.addEventListener("click", () => {
-                    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-                });
+		// PC の click
+		area.addEventListener("click", () => {
+		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+		});
+
+		// スマホの touchend（チャートがイベントを奪う問題を回避）
+		area.addEventListener("touchend", () => {
+		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+		});
 
                 try {
                     const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
