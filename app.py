@@ -50,7 +50,17 @@ def load_jpx_list():
     return df[["code", "name", "market", "sector17"]]
 
 
-def fetch_real_data(ticker, interval="1d", period="5y"):
+def fetch_real_data(ticker, interval="1d", period=None):
+
+    # interval に応じて期間を自動設定
+    if period is None:
+        if interval == "1d":
+            period = "3mo"   # ★ 日足は3か月
+        elif interval == "1wk":
+            period = "1y"    # ★ 週足は1年（好みで変更可）
+        elif interval == "1mo":
+            period = "5y"    # ★ 月足は5年（好みで変更可）
+
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
     if df is None or df.empty:
