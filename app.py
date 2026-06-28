@@ -370,10 +370,26 @@ def index():
 		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
 		});
 
-		// スマホの touchend（チャートがイベントを奪う問題を回避）
-		area.addEventListener("touchend", () => {
-		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-		});
+	// --- スマホの誤タップ防止付きリンク処理 ---
+let touchStartY = 0;
+let touchEndY = 0;
+
+// タッチ開始位置を記録
+area.addEventListener("touchstart", (e) => {
+    touchStartY = e.changedTouches[0].clientY;
+});
+
+// タッチ終了位置を記録して、移動量が小さい場合だけリンクを開く
+area.addEventListener("touchend", (e) => {
+    touchEndY = e.changedTouches[0].clientY;
+
+    const diff = Math.abs(touchEndY - touchStartY);
+
+    // 20px以内なら「タップ」とみなす（スワイプではない）
+    if (diff < 20) {
+        window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+    }
+});
 
                 try {
                     const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
