@@ -284,8 +284,7 @@ def index():
             document.querySelectorAll("input[name='interval']").forEach(radio => {
 radio.addEventListener("change", () => {
     currentInterval = radio.value;
-    updateAllCharts();   // ★ 足種変更時に既存チャートを更新
-                });
+});
             });
 
 document.querySelectorAll("input[name='interval']").forEach(radio => {
@@ -303,20 +302,20 @@ document.querySelectorAll("input[name='interval']").forEach(radio => {
                 }
             });
 
-            // ▼ 描画開始ボタン
-            document.getElementById("start-button").addEventListener("click", () => {
-                drawing = true;
+// ▼ 描画開始ボタン（足種変更後の再描画はここで行う）
+document.getElementById("start-button").addEventListener("click", () => {
+    drawing = true;
 
-                // ★ 業種選択エリアを閉じる
-                document.getElementById("sector-box-wrapper").style.display = "none";
-                document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
+    // 業種選択エリアを閉じる
+    document.getElementById("sector-box-wrapper").style.display = "none";
+    document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                document.getElementById("app").innerHTML = "";
-                document.getElementById("loading").innerText = "読み込み中...";
-                page = 1;
-                globalIndex = 0;
-                loadNextPage();
-            });
+    // ★ 既存チャートを interval に合わせて再描画
+    updateAllCharts();
+
+    // ★ 新規読み込み用の状態は維持（page をリセットしない）
+    document.getElementById("loading").innerText = "";
+});
 
             async function loadNextPage() {
                 if (!drawing) return;
