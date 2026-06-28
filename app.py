@@ -95,7 +95,7 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>東証チャート無限スクロール</title>
+        <title>東証チャートの縦流し</title>
 
         <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
@@ -189,12 +189,28 @@ def index():
                 color: #aaa;
                 font-size: 14px;
             }
+
+	    #site-title {
+	        position: absolute;
+	        top: 10px;
+	        right: 10px;
+	        background: #007bff;   /* 青色 */
+	        color: white;           /* 白文字 */
+	        padding: 6px 12px;
+	        border-radius: 6px;
+	        font-size: 16px;
+	        font-weight: bold;
+	        z-index: 1000;
+	    }
+
         </style>
     </head>
     <body>
 
         <!-- 市場区分 -->
         <div id="filter-bar">
+
+	    <div id="site-title">東証チャートの縦流し</div>
 
             <h3>市場区分（複数選択可）</h3>
             <div class="filter-group">
