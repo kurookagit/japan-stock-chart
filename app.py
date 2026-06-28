@@ -201,6 +201,11 @@ def index():
 	        font-size: 14px;   /* 少し小さくしてスマホでの圧迫を減らす */
 	        font-weight: bold;
 	        z-index: 1000;
+
+	        /* ★ ここを少し左へ寄せる（重要） */
+	        margin-right: 10px;   /* 右端から少し余裕を作る */
+
+	        /* flex 行の右端に置くので absolute は不要 */
 	    }
 
 	    #interval-row {
@@ -219,8 +224,13 @@ def index():
 	        font-size: 14px;
 	        font-weight: bold;
 	        text-decoration: none;
-	    }
 
+	        /* ★ ここを少し左へ寄せる（重要） */
+	        margin-right: 10px;   /* 右端から少し余裕を作る */
+
+	        /* flex 行の右端に置くので absolute は不要 */
+	    }
+	    
         </style>
     </head>
     <body>
