@@ -64,7 +64,7 @@
             text-align: center;
         }
 
-        /* ★ アコーディオンで開閉する業種チェックボックスのエリア */
+        /* ★ アコーディオンで開閉する業種エリア（初期状態は絶対に非表示にする） */
         #sector-container {
             background: #151927;
             border-radius: 4px;
@@ -72,11 +72,12 @@
             margin-top: 8px;
             max-height: 180px;
             overflow-y: auto;
-            display: none; /* 初期状態は非表示 */
+            display: none !important; /* ← ここで最初を確実に隠します */
         }
 
+        /* ★ ボタンが押されて 'open' というクラスがついたら表示する */
         #sector-container.open {
-            display: block; /* ボタンクリックで表示 */
+            display: block !important;
         }
 
         .sector-grid {
