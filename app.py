@@ -559,10 +559,21 @@ def api_list():
             lambda x: isinstance(x, str) and any(m in x for m in markets)
         )]
 
+
     if sectors and sectors != [""]:
         df = df[df["sector17"].apply(
             lambda x: isinstance(x, str) and any(s in x for s in sectors)
         )]
+
+    # ★【最重要修正】絞り込みで崩れてしまった並び順を、データを出力する直前で「コードの小さい順」に再度ガチガチにロックする
+    df = df.sort_values(by="code", ascending=True)
+
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    data = df.iloc[start:end].to_dict(orient="records")
+    return jsonify({"data": data})
+
 
     start = (page - 1) * per_page
     end = start + per_page
