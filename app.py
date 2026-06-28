@@ -299,22 +299,29 @@ def index():
                 }
             });
 
+
             // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
+                // 1. 最初（1回目）のクリックのときだけ、前回の条件を今選ばれているものに強制同期する
+                if (!drawing) {
+                    selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
+                    selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
+                }
+
                 drawing = true;
 
-                // 1. 今回選ばれた最新の条件を取得
+                // 2. 今回選ばれた最新の条件を取得
                 const nextMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
                 const nextSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
                 
                 const checkedInterval = document.querySelector("input[name='interval']:checked");
                 const nextInterval = checkedInterval ? checkedInterval.value : "1d";
 
-                // 2. 「市場区分」か「業種」が前回と変わったかどうかを判定
+                // 3. 「市場区分」か「業種」が前回と変わったかどうかを判定
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
 
-                // 3. 最新の条件を変数に上書き
+                // 4. 最新の条件を変数に上書き
                 selectedMarkets = nextMarkets;
                 selectedSectors = nextSectors;
                 currentInterval = nextInterval;
@@ -323,16 +330,16 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                // 4. 【条件（市場や業種）が変わった場合】
-                // 別のジャンルを見る合図なので、画面をリセットして最初から読み直す
-                if (isMarketChanged || isSectorChanged) {
+                // 5. 【条件（市場や業種）が変わった場合、または最初の1回目の場合】
+                // 画面をリセットして1ページ目から読み直す
+                if (isMarketChanged || isSectorChanged || document.getElementById("app").innerHTML === "") {
                     document.getElementById("app").innerHTML = "";
                     document.getElementById("loading").innerText = "読み込み中...";
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
                 } 
-                // 5. 【足種（日・週・月）だけが変わった場合】★ここがご希望の動きです！
+                // 6. 【足種（日・週・月）だけが変わった場合】
                 // 最初の銘柄に戻らず、今画面に表示されている全ての銘柄のチャートだけをその場で書き換える
                 else {
                     const containers = document.querySelectorAll(".chart-container");
@@ -341,14 +348,14 @@ def index():
                         const titleElement = container.querySelector(".chart-title");
                         const area = container.querySelector(".chart-area");
                         
-                        // タイトル（例：「7203 トヨタ自動車」）から銘柄コードの4桁だけを抜き出す
+                        // ★タイトル（例：「7203 トヨタ自動車」）から最初の4桁のコードだけを確実に抜き出す
                         const titleText = titleElement.innerText;
                         const code = titleText.split(" ")[0]; 
 
-                        // 既存の古いチャートの文字やキャンバスを一旦綺麗に消去する
-                        area.innerHTML = "<div style='padding:20px; color:#aaa;'>足種更新中...</div>";
+                        // 既存の古いチャートをクリア
+                        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-                        // その銘柄の「新しい足種のデータ」をPythonに要求する
+                        // 新しい足種データを取得して再描画
                         fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
@@ -356,9 +363,8 @@ def index():
                                     area.innerText = "データ取得エラー";
                                     return;
                                 }
-                                area.innerHTML = ""; // 「更新中」の文字を消す
+                                area.innerHTML = ""; // 文字を消す
 
-                                // まったく同じ場所に新しい足種でチャートを再生成する
                                 const chart = LightweightCharts.createChart(area, {
                                     layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
                                     grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
@@ -386,6 +392,10 @@ def index():
                     });
                 }
             });
+
+
+
+
 
             async function loadNextPage() {
                 if (!drawing) return;
