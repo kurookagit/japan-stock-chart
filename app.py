@@ -19,10 +19,12 @@ def update_jpx_list():
         if mtime == today:
             return
 
+    print("JPX銘柄一覧をダウンロード中...")
     r = requests.get(JPX_CSV_URL)
     r.raise_for_status()
     with open(LOCAL_CSV, "wb") as f:
         f.write(r.content)
+    print("JPX銘柄一覧更新完了")
 
 
 def load_jpx_list():
@@ -50,13 +52,14 @@ def load_jpx_list():
 
 def fetch_real_data(ticker, interval="1d", period=None):
 
+    # interval に応じて期間を自動設定
     if period is None:
         if interval == "1d":
-            period = "3mo"
+            period = "3mo"   # ★ 日足は3か月
         elif interval == "1wk":
-            period = "1y"
+            period = "1y"    # ★ 週足は1年（好みで変更可）
         elif interval == "1mo":
-            period = "5y"
+            period = "5y"    # ★ 月足は5年（好みで変更可）
 
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
@@ -83,396 +86,366 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
 @app.route('/')
 def index():
-    return """<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東証チャート無限スクロール</title>
+    return """
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>東証チャート無限スクロール</title>
 
-<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+        <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
-<style>
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #131722;
-    color: #d1d4dc;
-    font-family: sans-serif;
-}
-#filter-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 999;
-    background: #1c2030;
-    padding: 10px;
-    border-bottom: 1px solid #333;
-}
-#filter-bar h3 {
-    margin: 5px 0;
-    font-size: 14px;
-}
-.filter-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-#start-button {
-    width: 100%;
-    padding: 10px;
-    background: #26a69a;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    margin-top: 10px;
-    cursor: pointer;
-}
-#content {
-    padding-top: 340px;
-}
-.chart-container {
-    margin: 10px;
-    background: #1c2030;
-    border-radius: 6px;
-    padding: 6px;
-}
-.chart-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.chart-area {
-    width: 100%;
-    height: 23vh;
-    min-height: 150px;
-    cursor: pointer;
-}
-.ad-banner {
-    width: 100%;
-    height: 80px;
-    background: #2a2e39;
-    border-radius: 6px;
-    margin: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #aaa;
-    font-size: 14px;
-}
-#loading {
-    text-align: center;
-    padding: 20px;
-    color: #aaa;
-    font-size: 14px;
-}
-</style>
-</head>
-<body>
-
-<div id="filter-bar">
-
-<h3>市場区分（複数選択可）</h3>
-<div class="filter-group">
-    <label><input type="checkbox" class="market" value="プライム"> プライム</label>
-    <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
-    <label><input type="checkbox" class="market" value="グロース"> グロース</label>
-</div>
-
-<h3>足種（1つだけ）</h3>
-<div class="filter-group">
-    <label><input type="radio" name="interval" value="1d" checked> 日足</label>
-    <label><input type="radio" name="interval" value="1wk"> 週足</label>
-    <label><input type="radio" name="interval" value="1mo"> 月足</label>
-</div>
-
-<h3>17業種</h3>
-
-<button id="toggle-sector" style="
-    width:100%; padding:10px; background:#2a2e39; color:white;
-    border:none; border-radius:6px; font-size:15px; margin-bottom:10px;">
-    業種を選択 ▼
-</button>
-
-<div id="sector-box-wrapper" style="display:none;">
-    <div class="filter-group">
-        <label><input type="checkbox" id="sector-all"> 全業種</label>
-    </div>
-    <div class="filter-group" id="sector-box"></div>
-</div>
-
-<button id="start-button">描画開始</button>
-</div>
-
-<div id="content">
-    <div id="app"></div>
-    <div id="loading"></div>
-</div>
-
-<script>
-
-let page = 1;
-let loading = false;
-let globalIndex = 0;
-let currentInterval = "1d";
-
-let selectedMarkets = [];
-let selectedSectors = [];
-
-let drawing = false;
-
-// ▼ 業種選択エリアの開閉
-document.getElementById("toggle-sector").addEventListener("click", () => {
-    const box = document.getElementById("sector-box-wrapper");
-    const btn = document.getElementById("toggle-sector");
-
-    if (box.style.display === "none") {
-        box.style.display = "block";
-        btn.innerText = "業種を選択 ▲";
-    } else {
-        box.style.display = "none";
-        btn.innerText = "業種を選択 ▼";
-    }
-});
-
-// 17業種一覧を取得
-fetch("/api/sectors")
-    .then(res => res.json())
-    .then(json => {
-        const box = document.getElementById("sector-box");
-
-        const sectors = json.sectors.filter(s => s !== "その他");
-        sectors.push("その他");
-
-        sectors.forEach(sec => {
-            const label = document.createElement("label");
-            label.innerHTML = `<input type="checkbox" class="sector" value="${sec}"> ${sec}`;
-            box.appendChild(label);
-        });
-    });
-
-document.getElementById("sector-all").addEventListener("change", (e) => {
-    const checked = e.target.checked;
-    document.querySelectorAll(".sector").forEach(cb => cb.checked = checked);
-    selectedSectors = checked
-        ? [...document.querySelectorAll(".sector")].map(x => x.value)
-        : [];
-});
-
-// ★ 足種変更 → currentInterval を更新するだけ（勝手に再描画しない）
-document.querySelectorAll("input[name='interval']").forEach(radio => {
-    radio.addEventListener("change", () => {
-        currentInterval = radio.value;
-    });
-});
-
-// ★ 業種・市場区分変更 → 初回描画扱いに戻す
-document.addEventListener("change", e => {
-    if (e.target.classList.contains("sector")) {
-        selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
-        drawing = false;
-    }
-    if (e.target.classList.contains("market")) {
-        selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
-        drawing = false;
-    }
-});
-
-// ▼ 描画開始ボタン
-document.getElementById("start-button").addEventListener("click", () => {
-
-    // ★ 初回描画（業種・市場区分変更時）
-    if (!drawing) {
-        drawing = true;
-
-        document.getElementById("sector-box-wrapper").style.display = "none";
-        document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
-
-        document.getElementById("app").innerHTML = "";
-        document.getElementById("loading").innerText = "読み込み中...";
-        page = 1;
-        globalIndex = 0;
-
-        loadNextPage();
-        return;
-    }
-
-    // ★ 足種変更後 → 既存チャートを再描画
-    updateAllCharts();
-    document.getElementById("loading").innerText = "";
-});
-
-async function loadNextPage() {
-    if (!drawing) return;
-    if (loading) return;
-    loading = true;
-
-    const params = new URLSearchParams({
-        page: page,
-        markets: selectedMarkets.join(","),
-        sectors: selectedSectors.join(",")
-    });
-
-    const res = await fetch(`/api/list?${params}`);
-    const json = await res.json();
-
-    if (!json.data || json.data.length === 0) {
-        document.getElementById("loading").innerText = "すべて読み込みました";
-        loading = false;
-        return;
-    }
-
-    for (const stock of json.data) {
-        globalIndex++;
-
-        if (globalIndex % 10 === 0) {
-            createAdBlock();
-        }
-
-        await createChartCard(stock.code, stock.name);
-    }
-
-    page++;
-    loading = false;
-}
-
-function createAdBlock() {
-    const app = document.getElementById('app');
-
-    const ad = document.createElement('div');
-    ad.className = 'ad-banner';
-    ad.innerHTML = "ここにA8広告コードを貼る";
-
-    app.appendChild(ad);
-}
-
-async function createChartCard(code, name) {
-    const app = document.getElementById('app');
-
-    const box = document.create.createElement('div');
-    box.className = 'chart-container';
-
-    const title = document.createElement('div');
-    title.className = 'chart-title';
-    title.innerText = `${code} ${name}`;
-    box.appendChild(title);
-
-    const area = document.createElement('div');
-    area.className = 'chart-area';
-    box.appendChild(area);
-
-    app.appendChild(box);
-
-    area.addEventListener("click", () => {
-        window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-    });
-
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    area.addEventListener("touchstart", (e) => {
-        touchStartY = e.changedTouches[0].clientY;
-    });
-
-    area.addEventListener("touchend", (e) => {
-        touchEndY = e.changedTouches[0].clientY;
-        const diff = Math.abs(touchEndY - touchStartY);
-        if (diff < 20) {
-            window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
-        }
-    });
-
-    try {
-        const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
-        const json = await res.json();
-
-        if (!json.data) {
-            area.innerText = "データ取得エラー";
-            return;
-        }
-
-        const chart = LightweightCharts.createChart(area, {
-            layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-            grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
-        });
-
-        const series = chart.addCandlestickSeries({
-            upColor: '#26a69a', downColor: '#ef5350',
-            borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-            wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-        });
-
-        series.setData(json.data);
-        chart.timeScale().fitContent();
-
-        function resizeChart() {
-            const h = window.innerHeight * 0.23;
-            chart.resize(area.clientWidth, h);
-        }
-        window.addEventListener('resize', resizeChart);
-        resizeChart();
-
-    } catch (e) {
-        area.innerText = "データ取得エラー";
-    }
-}
-
-async function updateAllCharts() {
-    const cards = document.querySelectorAll(".chart-container");
-
-    for (const card of cards) {
-        const title = card.querySelector(".chart-title").innerText;
-        const code = title.split(" ")[0];
-
-        const area = card.querySelector(".chart-area");
-        area.innerHTML = "";
-
-        try {
-            const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
-            const json = await res.json();
-
-            if (!json.data) {
-                area.innerText = "データ取得エラー";
-                continue;
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #131722;
+                color: #d1d4dc;
+                font-family: sans-serif;
             }
 
-            const chart = LightweightCharts.createChart(area, {
-                layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
+            #filter-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 999;
+                background: #1c2030;
+                padding: 10px;
+                border-bottom: 1px solid #333;
+            }
+
+            #filter-bar h3 {
+                margin: 5px 0;
+                font-size: 14px;
+            }
+
+            .filter-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            #start-button {
+                width: 100%;
+                padding: 10px;
+                background: #26a69a;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                margin-top: 10px;
+                cursor: pointer;
+            }
+
+            #content {
+                padding-top: 340px;
+            }
+
+            .chart-container {
+                margin: 10px;
+                background: #1c2030;
+                border-radius: 6px;
+                padding: 6px;
+            }
+
+            .chart-title {
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .chart-area {
+                width: 100%;
+                height: 23vh;
+                min-height: 150px;
+                cursor: pointer;
+            }
+
+            .ad-banner {
+                width: 100%;
+                height: 80px;
+                background: #2a2e39;
+                border-radius: 6px;
+                margin: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: #aaa;
+                font-size: 14px;
+            }
+
+            #loading {
+                text-align: center;
+                padding: 20px;
+                color: #aaa;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <!-- 市場区分 -->
+        <div id="filter-bar">
+
+            <h3>市場区分（複数選択可）</h3>
+            <div class="filter-group">
+                <label><input type="checkbox" class="market" value="プライム"> プライム</label>
+                <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
+                <label><input type="checkbox" class="market" value="グロース"> グロース</label>
+            </div>
+
+            <h3>足種（1つだけ）</h3>
+            <div class="filter-group">
+                <label><input type="radio" name="interval" value="1d" checked> 日足</label>
+                <label><input type="radio" name="interval" value="1wk"> 週足</label>
+                <label><input type="radio" name="interval" value="1mo"> 月足</label>
+            </div>
+
+            <!-- ▼▼▼ ここから業種折りたたみ ▼▼▼ -->
+            <h3>17業種</h3>
+
+            <button id="toggle-sector" style="
+                width:100%; padding:10px; background:#2a2e39; color:white;
+                border:none; border-radius:6px; font-size:15px; margin-bottom:10px;">
+                業種を選択 ▼
+            </button>
+
+            <div id="sector-box-wrapper" style="display:none;">
+                <div class="filter-group">
+                    <label><input type="checkbox" id="sector-all"> 全業種</label>
+                </div>
+                <div class="filter-group" id="sector-box"></div>
+            </div>
+            <!-- ▲▲▲ ここまで業種折りたたみ ▲▲▲ -->
+
+            <button id="start-button">描画開始</button>
+        </div>
+
+        <div id="content">
+            <div id="app"></div>
+            <div id="loading"></div>
+        </div>
+
+        <script>
+            let page = 1;
+            let loading = false;
+            let globalIndex = 0;
+            let currentInterval = "1d";
+
+            let selectedMarkets = [];
+            let selectedSectors = [];
+
+            let drawing = false;
+
+            // ▼ 業種選択エリアの開閉
+            document.getElementById("toggle-sector").addEventListener("click", () => {
+                const box = document.getElementById("sector-box-wrapper");
+                const btn = document.getElementById("toggle-sector");
+
+                if (box.style.display === "none") {
+                    box.style.display = "block";
+                    btn.innerText = "業種を選択 ▲";
+                } else {
+                    box.style.display = "none";
+                    btn.innerText = "業種を選択 ▼";
+                }
             });
 
-            const series = chart.addCandlestickSeries({
-                upColor: '#26a69a', downColor: '#ef5350',
-                borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-                wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+            // 17業種一覧を取得
+            fetch("/api/sectors")
+                .then(res => res.json())
+                .then(json => {
+                    const box = document.getElementById("sector-box");
+
+                    const sectors = json.sectors.filter(s => s !== "その他");
+                    sectors.push("その他");
+
+                    sectors.forEach(sec => {
+                        const label = document.createElement("label");
+                        label.innerHTML = `<input type="checkbox" class="sector" value="${sec}"> ${sec}`;
+                        box.appendChild(label);
+                    });
+                });
+
+            document.getElementById("sector-all").addEventListener("change", (e) => {
+                const checked = e.target.checked;
+                document.querySelectorAll(".sector").forEach(cb => cb.checked = checked);
+                selectedSectors = checked
+                    ? [...document.querySelectorAll(".sector")].map(x => x.value)
+                    : [];
             });
 
-            series.setData(json.data);
-            chart.timeScale().fitContent();
+            document.querySelectorAll("input[name='interval']").forEach(radio => {
+                radio.addEventListener("change", () => {
+                    currentInterval = radio.value;
+                });
+            });
 
-        } catch (e) {
-            area.innerText = "データ取得エラー";
-        }
-    }
-}
+            document.addEventListener("change", e => {
+                if (e.target.classList.contains("market")) {
+                    selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
+                }
+            });
 
-window.addEventListener("scroll", () => {
-    if (!drawing) return;
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
-        loadNextPage();
+            document.addEventListener("change", e => {
+                if (e.target.classList.contains("sector")) {
+                    selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
+                }
+            });
+
+            // ▼ 描画開始ボタン
+            document.getElementById("start-button").addEventListener("click", () => {
+                drawing = true;
+
+                // ★ 業種選択エリアを閉じる
+                document.getElementById("sector-box-wrapper").style.display = "none";
+                document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
+
+                document.getElementById("app").innerHTML = "";
+                document.getElementById("loading").innerText = "読み込み中...";
+                page = 1;
+                globalIndex = 0;
+                loadNextPage();
+            });
+
+            async function loadNextPage() {
+                if (!drawing) return;
+                if (loading) return;
+                loading = true;
+
+                const params = new URLSearchParams({
+                    page: page,
+                    markets: selectedMarkets.join(","),
+                    sectors: selectedSectors.join(",")
+                });
+
+                const res = await fetch(`/api/list?${params}`);
+                const json = await res.json();
+
+                if (!json.data || json.data.length === 0) {
+                    document.getElementById("loading").innerText = "すべて読み込みました";
+                    loading = false;
+                    return;
+                }
+
+                for (const stock of json.data) {
+                    globalIndex++;
+
+                    if (globalIndex % 10 === 0) {
+                        createAdBlock();
+                    }
+
+                    await createChartCard(stock.code, stock.name);
+                }
+
+                page++;
+                loading = false;
+            }
+
+            function createAdBlock() {
+                const app = document.getElementById('app');
+
+                const ad = document.createElement('div');
+                ad.className = 'ad-banner';
+                ad.innerHTML = "ここにA8広告コードを貼る";
+
+                app.appendChild(ad);
+            }
+
+            async function createChartCard(code, name) {
+                const app = document.getElementById('app');
+
+                const box = document.createElement('div');
+                box.className = 'chart-container';
+
+                const title = document.createElement('div');
+                title.className = 'chart-title';
+                title.innerText = `${code} ${name}`;
+                box.appendChild(title);
+
+                const area = document.createElement('div');
+                area.className = 'chart-area';
+                box.appendChild(area);
+
+                app.appendChild(box);
+
+		// PC の click
+		area.addEventListener("click", () => {
+		    window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
+		});
+
+	// --- スマホの誤タップ防止付きリンク処理 ---
+let touchStartY = 0;
+let touchEndY = 0;
+
+// タッチ開始位置を記録
+area.addEventListener("touchstart", (e) => {
+    touchStartY = e.changedTouches[0].clientY;
+});
+
+// タッチ終了位置を記録して、移動量が小さい場合だけリンクを開く
+area.addEventListener("touchend", (e) => {
+    touchEndY = e.changedTouches[0].clientY;
+
+    const diff = Math.abs(touchEndY - touchStartY);
+
+    // 20px以内なら「タップ」とみなす（スワイプではない）
+    if (diff < 20) {
+        window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
     }
 });
 
-</script>
-</body>
-</html>
-"""
+                try {
+                    const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
+                    const json = await res.json();
+
+                    if (!json.data) {
+                        area.innerText = "データ取得エラー";
+                        return;
+                    }
+
+                    const chart = LightweightCharts.createChart(area, {
+                        layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                        grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
+                    });
+
+                    const series = chart.addCandlestickSeries({
+                        upColor: '#26a69a', downColor: '#ef5350',
+                        borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+                        wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+                    });
+
+                    series.setData(json.data);
+                    chart.timeScale().fitContent();
+
+                    function resizeChart() {
+                        const h = window.innerHeight * 0.23;
+                        chart.resize(area.clientWidth, h);
+                    }
+                    window.addEventListener('resize', resizeChart);
+                    resizeChart();
+
+                } catch (e) {
+                    area.innerText = "データ取得エラー";
+                }
+            }
+
+            window.addEventListener("scroll", () => {
+                if (!drawing) return;
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+                    loadNextPage();
+                }
+            });
+        </script>
+    </body>
+    </html>
+    """
 
 
 @app.route('/api/sectors')
