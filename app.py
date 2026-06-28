@@ -191,14 +191,14 @@ def index():
             }
 
 	    #site-title {
-	        position: absolute;
-	        top: 10px;
+    	    	position: absolute;
+    	    	top: 6px;          /* 少し上に詰める */
 	        right: 10px;
-	        background: #007bff;   /* 青色 */
-	        color: white;           /* 白文字 */
-	        padding: 6px 12px;
-	        border-radius: 6px;
-	        font-size: 16px;
+    	        background: #007bff;
+	        color: white;
+	        padding: 3px 10px; /* ★ 縦の余白を半分にする（重要） */
+	        border-radius: 4px;
+	        font-size: 14px;   /* 少し小さくしてスマホでの圧迫を減らす */
 	        font-weight: bold;
 	        z-index: 1000;
 	    }
