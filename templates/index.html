@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>東証チャートの縦流し</title>
+    <!-- パソコン内のファイルを読み込む設定 -->
+    <script src="lightweight-charts.js"></script>
+    <style>
+        body { margin: 0; padding: 10px; background-color: #131722; color: #d1d4dc; font-family: sans-serif; }
+        .chart-container { margin-bottom: 25px; background: #1c2030; border-radius: 8px; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .chart-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; padding-left: 5px; }
+        .chart-area { width: 100%; height: 220px; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        const tickers = ['7203.T', '6758.T', '6861.T']; 
+        const appContainer = document.getElementById('app');
+
+        async function createChartCard(ticker) {
+            const container = document.createElement('div');
+            container.className = 'chart-container';
+            
+            const title = document.createElement('div');
+            title.className = 'chart-title';
+            title.innerText = `銘柄コード: ${ticker.replace('.T', '')}`;
+            container.appendChild(title);
+
+            const chartArea = document.createElement('div');
+            chartArea.className = 'chart-area';
+            container.appendChild(chartArea);
+            
+            appContainer.appendChild(container);
+
+            try {
+                const response = await fetch(`/api/chart?ticker=${ticker}`);
+                const resData = await response.json();
+                
+                if (!response.ok) throw new Error(resData.error);
+
+                // 【修正箇所】大文字小文字のエラーを回避するため、安全な読み込み方に書き換えました
+                const LightweightChartsLib = window.LightweightCharts || window.lightweightCharts;
+                if (!LightweightChartsLib) throw new Error("ライブラリの起動に失敗しました");
+
+                const chart = LightweightChartsLib.createChart(chartArea, {
+                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                    grid: { vertLines: { color: 'rgba(42, 46, 57, 0.5)' }, horzLines: { color: 'rgba(42, 46, 57, 0.5)' } },
+                    rightPriceScale: { borderColor: 'rgba(197, 203, 206, 0.8)' },
+                    timeScale: { borderColor: 'rgba(197, 203, 206, 0.8)' },
+                });
+
+                const candlestickSeries = chart.addCandlestickSeries({
+                    upColor: '#26a69a', downColor: '#ef5350', borderDownColor: '#ef5350', borderUpColor: '#26a69a', wickDownColor: '#ef5350', wickUpColor: '#26a69a',
+                });
+
+                candlestickSeries.setData(resData.data);
+                chart.timeScale().fitContent();
+
+                window.addEventListener('resize', () => {
+                    chart.resize(chartArea.clientWidth, 220);
+                });
+
+            } catch (error) {
+                chartArea.innerText = `エラーが発生しました: ${error.message}`;
+                chartArea.style.color = '#ef5350';
+            }
+        }
+
+        tickers.forEach(ticker => createChartCard(ticker));
+    </script>
+</body>
+</html>
