@@ -68,26 +68,31 @@ def fetch_real_data(ticker, interval="1d", period=None):
     if df is None or df.empty:
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
-    df = df.reset_index()
 
-    # Date / Datetime のどちらかを使う
-    if "Date" in df.columns:
-        date_col = "Date"
-    elif "Datetime" in df.columns:
-        date_col = "Datetime"
-    else:
-        # 万一どちらもない場合はそのまま返す
-        raise ValueError("日付列が見つかりませんでした")
 
-    ohlc = []
-    for _, row in df.iterrows():
-        ohlc.append({
-            "time": row[date_col].strftime("%Y-%m-%d"),
-            "open": float(row["Open"]),
-            "high": float(row["High"]),
-            "low": float(row["Low"]),
-            "close": float(row["Close"]),
-        })
+df = df.reset_index()
+df.columns = df.columns.get_level_values(0)
+
+# 行に Date があるかどうかで判定する
+if "Date" in df.columns:
+    date_col = "Date"
+elif "Datetime" in df.columns:
+    date_col = "Datetime"
+else:
+    # 万一どちらも無い場合は index を使う
+    date_col = df.columns[0]
+
+ohlc = []
+for _, row in df.iterrows():
+    ohlc.append({
+        "time": row[date_col].strftime("%Y-%m-%d"),
+        "open": float(row["Open"]),
+        "high": float(row["High"]),
+        "low": float(row["Low"]),
+        "close": float(row["Close"]),
+    })
+
+
 
     return ohlc
 
