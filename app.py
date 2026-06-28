@@ -83,8 +83,7 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
 @app.route('/')
 def index():
-    return """
-<!DOCTYPE html>
+    return """<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -356,7 +355,7 @@ function createAdBlock() {
 async function createChartCard(code, name) {
     const app = document.getElementById('app');
 
-    const box = document.createElement('div');
+    const box = document.create.createElement('div');
     box.className = 'chart-container';
 
     const title = document.createElement('div');
@@ -525,4 +524,4 @@ def api_chart():
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", 
+    app.run(host="0.0.0.0", port=port)
