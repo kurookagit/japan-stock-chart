@@ -65,20 +65,23 @@
         }
 
         /* ★ アコーディオンで開閉する業種エリア（初期状態は絶対に非表示にする） */
-        #sector-container {
-            background: #151927;
-            border-radius: 4px;
-            padding: 10px;
-            margin-top: 8px;
-            max-height: 180px;
-            overflow-y: auto;
-            display: none !important; /* ← ここで最初を確実に隠します */
-        }
+#sector-container {
+    background: #151927;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 8px;
 
-        /* ★ ボタンが押されて 'open' というクラスがついたら表示する */
-        #sector-container.open {
-            display: block !important;
-        }
+    /* 初期状態で完全に隠す */
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+}
+
+#sector-container.open {
+    display: block;
+    max-height: 180px; /* 必要に応じて調整 */
+}
+
 
         .sector-grid {
             display: grid;
