@@ -7,12 +7,10 @@ import requests
 
 app = Flask(__name__)
 
-# JPXの銘柄一覧Excel（.xls）のURL
 JPX_CSV_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 LOCAL_CSV = "jpx_list.xls"
 
 
-# JPX 公式銘柄一覧を毎日1回だけ更新
 def update_jpx_list():
     today = datetime.date.today()
 
@@ -29,7 +27,6 @@ def update_jpx_list():
     print("JPX銘柄一覧更新完了")
 
 
-# JPX銘柄一覧を読み込んで DataFrame を返す
 def load_jpx_list():
     update_jpx_list()
 
@@ -43,8 +40,6 @@ def load_jpx_list():
     })
 
     df["code"] = df["code"].astype(str).str.zfill(4)
-
-    # ★ 不要文字を除去して「その他」に統一
     df["sector17"] = df["sector17"].astype(str).str.strip()
 
     df["sector17"] = df["sector17"].replace(
@@ -55,7 +50,6 @@ def load_jpx_list():
     return df[["code", "name", "market", "sector17"]]
 
 
-# yfinance で実際の足種データを取得
 def fetch_real_data(ticker, interval="1d", period="5y"):
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
@@ -101,7 +95,6 @@ def index():
                 font-family: sans-serif;
             }
 
-            /* ★ 上部固定フィルタバー ★ */
             #filter-bar {
                 position: fixed;
                 top: 0;
@@ -125,7 +118,6 @@ def index():
                 margin-bottom: 10px;
             }
 
-            /* 描画開始ボタン */
             #start-button {
                 width: 100%;
                 padding: 10px;
@@ -138,7 +130,6 @@ def index():
                 cursor: pointer;
             }
 
-            /* ★ フィルタバーの高さに合わせて余白を増やす */
             #content {
                 padding-top: 340px;
             }
@@ -189,7 +180,7 @@ def index():
     </head>
     <body>
 
-        <!-- ★ フィルタバー（市場区分＋17業種＋足種＋描画開始） ★ -->
+        <!-- 市場区分 -->
         <div id="filter-bar">
 
             <h3>市場区分（複数選択可）</h3>
@@ -199,18 +190,29 @@ def index():
                 <label><input type="checkbox" class="market" value="グロース"> グロース</label>
             </div>
 
-            <h3>17業種（複数選択可）</h3>
-            <div class="filter-group">
-                <label><input type="checkbox" id="sector-all"> 全業種</label>
-            </div>
-            <div class="filter-group" id="sector-box"></div>
-
             <h3>足種（1つだけ）</h3>
             <div class="filter-group">
                 <label><input type="radio" name="interval" value="1d" checked> 日足</label>
                 <label><input type="radio" name="interval" value="1wk"> 週足</label>
                 <label><input type="radio" name="interval" value="1mo"> 月足</label>
             </div>
+
+            <!-- ▼▼▼ ここから業種折りたたみ ▼▼▼ -->
+            <h3>17業種</h3>
+
+            <button id="toggle-sector" style="
+                width:100%; padding:10px; background:#2a2e39; color:white;
+                border:none; border-radius:6px; font-size:15px; margin-bottom:10px;">
+                業種を選択 ▼
+            </button>
+
+            <div id="sector-box-wrapper" style="display:none;">
+                <div class="filter-group">
+                    <label><input type="checkbox" id="sector-all"> 全業種</label>
+                </div>
+                <div class="filter-group" id="sector-box"></div>
+            </div>
+            <!-- ▲▲▲ ここまで業種折りたたみ ▲▲▲ -->
 
             <button id="start-button">描画開始</button>
         </div>
@@ -229,15 +231,28 @@ def index():
             let selectedMarkets = [];
             let selectedSectors = [];
 
-            let drawing = false;  // ★ 描画開始ボタンを押すまで false
+            let drawing = false;
 
-            // 17業種一覧を取得してチェックボックス生成
+            // ▼ 業種選択エリアの開閉
+            document.getElementById("toggle-sector").addEventListener("click", () => {
+                const box = document.getElementById("sector-box-wrapper");
+                const btn = document.getElementById("toggle-sector");
+
+                if (box.style.display === "none") {
+                    box.style.display = "block";
+                    btn.innerText = "業種を選択 ▲";
+                } else {
+                    box.style.display = "none";
+                    btn.innerText = "業種を選択 ▼";
+                }
+            });
+
+            // 17業種一覧を取得
             fetch("/api/sectors")
                 .then(res => res.json())
                 .then(json => {
                     const box = document.getElementById("sector-box");
 
-                    // ★ 「その他」を最後に移動
                     const sectors = json.sectors.filter(s => s !== "その他");
                     sectors.push("その他");
 
@@ -248,7 +263,6 @@ def index():
                     });
                 });
 
-            // 全業種ボタン
             document.getElementById("sector-all").addEventListener("change", (e) => {
                 const checked = e.target.checked;
                 document.querySelectorAll(".sector").forEach(cb => cb.checked = checked);
@@ -257,30 +271,32 @@ def index():
                     : [];
             });
 
-            // 足種変更
             document.querySelectorAll("input[name='interval']").forEach(radio => {
                 radio.addEventListener("change", () => {
                     currentInterval = radio.value;
                 });
             });
 
-            // 市場区分変更
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("market")) {
                     selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
                 }
             });
 
-            // 業種変更
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("sector")) {
                     selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
                 }
             });
 
-            // ★ 描画開始ボタン
+            // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
+
+                // ★ 業種選択エリアを閉じる
+                document.getElementById("sector-box-wrapper").style.display = "none";
+                document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
+
                 document.getElementById("app").innerHTML = "";
                 document.getElementById("loading").innerText = "読み込み中...";
                 page = 1;
@@ -289,7 +305,7 @@ def index():
             });
 
             async function loadNextPage() {
-                if (!drawing) return;  // ★ 描画開始前は動かない
+                if (!drawing) return;
                 if (loading) return;
                 loading = true;
 
@@ -417,13 +433,11 @@ def api_list():
 
     df = load_jpx_list()
 
-    # ★ 市場区分：部分一致でフィルタ
     if markets and markets != [""]:
         df = df[df["market"].apply(
             lambda x: isinstance(x, str) and any(m in x for m in markets)
         )]
 
-    # ★ 17業種：部分一致でフィルタ
     if sectors and sectors != [""]:
         df = df[df["sector17"].apply(
             lambda x: isinstance(x, str) and any(s in x for s in sectors)
