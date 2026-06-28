@@ -423,15 +423,57 @@ def index():
                 loading = false;
             }
 
-            function createAdBlock() {
-                const app = document.getElementById('app');
+		function createAdBlock() {
+		    const app = document.getElementById('app');
+		
+		    // ★ A8 の広告コードを複数登録（ここにあなたの広告コードを貼る）
+		    const ads = [
+		        `
+		        <!-- A8広告1 -->
+		        <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
+		        `,
+		        `
+		        <!-- A8広告2 -->
+		        <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
+		        `,
+		        `
+		        <!-- A8広告3 -->
+		        <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
 
-                const ad = document.createElement('div');
-                ad.className = 'ad-banner';
-                ad.innerHTML = "ここにA8広告コードを貼る";
+		        <!-- A8広告4 -->
+		        <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
+		        `,
+		        `
+		        <!-- A8広告5 -->
+		        <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
+		        `,
+		        `
+		        <!-- A8広告6 -->
+		        <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
 
-                app.appendChild(ad);
-            }
+		        <!-- A8広告7 -->
+		        <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
+		        `,
+		        `
+		        <!-- A8広告8 -->
+		        <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
+		        `,
+		        `
+		        <!-- A8広告9 -->
+		        <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
+		        `
+		    ];
+		
+		    // ★ ランダムに1つ選ぶ
+		    const randomAd = ads[Math.floor(Math.random() * ads.length)];
+		
+		    // ★ 広告ブロックを作成
+		    const ad = document.createElement('div');
+		    ad.className = 'ad-banner';
+		    ad.innerHTML = randomAd;
+		
+		    app.appendChild(ad);
+		}
 
             async function createChartCard(code, name) {
                 const app = document.getElementById('app');
