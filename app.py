@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 import yfinance as yf
 import pandas as pd
 import os
@@ -82,13 +82,7 @@ def fetch_real_data(ticker, interval="1d", period="5y"):
 
 @app.route('/')
 def index():
-    return """
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>東証チャート無限スクロール</title>
+    return render_template("index.html")
 
         <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
