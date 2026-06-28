@@ -302,20 +302,29 @@ document.querySelectorAll("input[name='interval']").forEach(radio => {
                 }
             });
 
-// ▼ 描画開始ボタン（足種変更後の再描画はここで行う）
+// ▼ 描画開始ボタン
 document.getElementById("start-button").addEventListener("click", () => {
-    drawing = true;
 
-    // 業種選択エリアを閉じる
-    document.getElementById("sector-box-wrapper").style.display = "none";
-    document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
+    // 初回描画ならチャートを消して読み込み直す
+    if (!drawing) {
+        drawing = true;
 
-    // ★ チャートを消さない（ここが重要）
-    // document.getElementById("app").innerHTML = ""; ← 削除
-    // page = 1; ← 削除
-    // loadNextPage(); ← 削除
+        // 業種選択エリアを閉じる
+        document.getElementById("sector-box-wrapper").style.display = "none";
+        document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-    // ★ 既存チャートを interval に合わせて再描画
+        // ★ 初回だけチャートを消す
+        document.getElementById("app").innerHTML = "";
+        document.getElementById("loading").innerText = "読み込み中...";
+        page = 1;
+        globalIndex = 0;
+
+        // ★ 初回だけ読み込み
+        loadNextPage();
+        return;
+    }
+
+    // 2回目以降（足種変更後）は既存チャートを更新するだけ
     updateAllCharts();
 
     // ローディング表示を消す
