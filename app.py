@@ -282,16 +282,20 @@ def index():
             });
 
             document.querySelectorAll("input[name='interval']").forEach(radio => {
-                radio.addEventListener("change", () => {
-                    currentInterval = radio.value;
+radio.addEventListener("change", () => {
+    currentInterval = radio.value;
+    updateAllCharts();   // ★ 足種変更時に既存チャートを更新
                 });
             });
 
-            document.addEventListener("change", e => {
-                if (e.target.classList.contains("market")) {
-                    selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
-                }
-            });
+document.querySelectorAll("input[name='interval']").forEach(radio => {
+    radio.addEventListener("change", () => {
+        currentInterval = radio.value;
+
+        // ★ 既存チャートをすべて週足/日足/月足に更新
+        updateAllCharts();
+    });
+});
 
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("sector")) {
@@ -435,6 +439,46 @@ area.addEventListener("touchend", (e) => {
                     area.innerText = "データ取得エラー";
                 }
             }
+
+async function updateAllCharts() {
+    const cards = document.querySelectorAll(".chart-container");
+
+    for (const card of cards) {
+        const title = card.querySelector(".chart-title").innerText;
+        const code = title.split(" ")[0];
+
+        const area = card.querySelector(".chart-area");
+        area.innerHTML = "";
+
+        try {
+            const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
+            const json = await res.json();
+
+            if (!json.data) {
+                area.innerText = "データ取得エラー";
+                continue;
+            }
+
+            const chart = LightweightCharts.createChart(area, {
+                layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
+            });
+
+            const series = chart.addCandlestickSeries({
+                upColor: '#26a69a', downColor: '#ef5350',
+                borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+                wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+            });
+
+            series.setData(json.data);
+            chart.timeScale().fitContent();
+
+        } catch (e) {
+            area.innerText = "データ取得エラー";
+        }
+    }
+}
+
 
             window.addEventListener("scroll", () => {
                 if (!drawing) return;
