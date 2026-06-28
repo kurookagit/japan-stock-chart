@@ -303,6 +303,15 @@ def index():
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
 
+                // ★ 市場区分、業種、足種の3つすべてを「今選んでいる最新の状態」にその場で更新する
+                selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
+                selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
+                
+                const checkedInterval = document.querySelector("input[name='interval']:checked");
+                if (checkedInterval) {
+                    currentInterval = checkedInterval.value;
+                }
+
                 // ★ 業種選択エリアを閉じる
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
