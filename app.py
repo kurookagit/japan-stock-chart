@@ -203,18 +203,22 @@ def index():
 	        z-index: 1000;
 	    }
 
+	    #interval-row {
+	        display: flex;
+	        justify-content: space-between;  /* 左：足種　右：PC画面 */
+	        align-items: center;
+	        position: relative;
+	        margin-top: 5px;
+	    }
+
 	    #pc-link {
-	        position: absolute;
-	        right: 10px;
-	        top: 140px;   /* ★ 足種の高さに合わせて調整（後で微調整可能） */
 	        background: #4da3ff;   /* 薄い青 */
-	        color: white;          /* 白文字 */
+	        color: white;
 	        padding: 4px 10px;
 	        border-radius: 6px;
 	        font-size: 14px;
 	        font-weight: bold;
 	        text-decoration: none;
-	        z-index: 1000;
 	    }
 
         </style>
@@ -233,14 +237,17 @@ def index():
                 <label><input type="checkbox" class="market" value="グロース"> グロース</label>
             </div>
 
-            <h3>足種（1つだけ）</h3>
-            <div class="filter-group">
-                <label><input type="radio" name="interval" value="1d" checked> 日足</label>
-                <label><input type="radio" name="interval" value="1wk"> 週足</label>
-                <label><input type="radio" name="interval" value="1mo"> 月足</label>
-            </div>
+	    <h3>足種（1つだけ）</h3>
 
-	    <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
+	    <div id="interval-row">
+	        <div class="interval-options">
+	            <label><input type="radio" name="interval" value="1d" checked> 日足</label>
+	            <label><input type="radio" name="interval" value="1wk"> 週足</label>
+	            <label><input type="radio" name="interval" value="1mo"> 月足</label>
+	        </div>
+
+	        <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
+	    </div>
 
             <!-- ▼▼▼ ここから業種折りたたみ ▼▼▼ -->
             <h3>17業種</h3>
