@@ -310,10 +310,15 @@ document.getElementById("start-button").addEventListener("click", () => {
     document.getElementById("sector-box-wrapper").style.display = "none";
     document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
+    // ★ チャートを消さない（ここが重要）
+    // document.getElementById("app").innerHTML = ""; ← 削除
+    // page = 1; ← 削除
+    // loadNextPage(); ← 削除
+
     // ★ 既存チャートを interval に合わせて再描画
     updateAllCharts();
 
-    // ★ 新規読み込み用の状態は維持（page をリセットしない）
+    // ローディング表示を消す
     document.getElementById("loading").innerText = "";
 });
 
