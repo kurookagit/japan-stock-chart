@@ -355,10 +355,16 @@ def index():
                                 }
                                 area.innerHTML = "";
 
-                                const chart = LightweightCharts.createChart(area, {
-                                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
-                                });
+				const chart = LightweightCharts.createChart(area, {
+				    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+				    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+				
+				    handleScale: false,
+				    handleScroll: false,
+				    wheel: { scroll: false, pinch: false },
+				    touch: { mode: 'none' },
+				    drag: { scroll: false }
+				});
 
                                 const series = chart.addCandlestickSeries({
                                     upColor: '#26a69a', downColor: '#ef5350',
@@ -474,10 +480,16 @@ def index():
                         return;
                     }
 
-                    const chart = LightweightCharts.createChart(area, {
-                        layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                        grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } }
-                    });
+		const chart = LightweightCharts.createChart(area, {
+		    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+		    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+		
+		    handleScale: false,
+		    handleScroll: false,
+		    wheel: { scroll: false, pinch: false },
+		    touch: { mode: 'none' },
+		    drag: { scroll: false }
+		});
 
                     const series = chart.addCandlestickSeries({
                         upColor: '#26a69a', downColor: '#ef5350',
