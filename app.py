@@ -529,10 +529,10 @@ def index():
                         fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
-                                if (!json.data) {
-                                    area.innerText = "データ取得エラー";
-                                    return;
-                                }
+				if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
+				    area.innerText = "データ取得エラー";
+				    return;
+				}
                                 area.innerHTML = "";
 
                                 const chart = LightweightCharts.createChart(area, {
@@ -681,10 +681,10 @@ def index():
                     const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
                     const json = await res.json();
 
-                    if (!json.data) {
-                        area.innerText = "データ取得エラー";
-                        return;
-                    }
+			if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
+ 			    area.innerText = "データ取得エラー";
+			    return;
+			}
 
                     const chart = LightweightCharts.createChart(area, {
                         layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
