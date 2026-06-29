@@ -178,15 +178,13 @@ def index():
     }
 
     /* ★ 市場区分と日経225を横並びにする行（強制左寄せ） */
-    #market-row {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-start !important;   /* ★ 左寄せを強制 */
-        gap: 10px;
-        flex-wrap: wrap;
-        width: 100%;
-    }
+#market-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;   /* 左寄せ */
+}
 
     /* 市場区分のラベル（プライム・スタンダード・グロース） */
     .market-label,
@@ -194,17 +192,17 @@ def index():
         font-size: 14px;
     }
 
-    /* ★ 日経225ボタン（青枠削除 & 左寄せ強制） */
-    #nikkei225-box {
-        font-size: 14px;
-        margin-left: 4px !important;     /* ★ 左に寄せる（強制） */
-        padding: 3px 6px;
-        border: none !important;         /* ★ 青枠を完全削除 */
-        background-color: #2a2e39;
-        border-radius: 6px;
-        cursor: pointer;
-        white-space: nowrap;
-    }
+/* ★ 日経225ボタンの完全修正版 */
+#nikkei225-box {
+    font-size: 14px;
+    margin-left: 8px;        /* ← 少し右へ寄せる（調整ポイント） */
+    padding: 0;              /* ← 縦位置ズレ防止（重要） */
+    background: none;        /* ← 灰色背景を完全削除 */
+    border: none;            /* ← 枠を完全削除 */
+    white-space: nowrap;
+    display: flex;           /* ← 縦位置を揃えるために必要 */
+    align-items: center;     /* ← プライム等と高さを完全一致 */
+}
 
     /* 日足・週足・月足の文字サイズ統一 */
     #interval-row label {
