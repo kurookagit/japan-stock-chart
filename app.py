@@ -805,8 +805,9 @@ def api_chart():
     interval = request.args.get('interval', "1d")
 
     try:
-        data = fetch_real_data(ticker, interval=interval)
-        return jsonify({"data": data})
+        # fetch_real_data は jsonify({"data": cleaned}) を返すので、
+        # そのまま返すだけで OK
+        return fetch_real_data(ticker, interval=interval)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
