@@ -100,6 +100,7 @@ NIKKEI225_CODES = load_nikkei225_list()
 
 
 def fetch_real_data(ticker, interval="1d", period=None):
+    # interval に応じて期間を自動設定
     if period is None:
         if interval == "1d":
             period = "3mo"
@@ -113,30 +114,29 @@ def fetch_real_data(ticker, interval="1d", period=None):
     if df is None or df.empty:
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
-df = df.reset_index()
-df.columns = df.columns.get_level_values(0)
+    df = df.reset_index()
+    df.columns = df.columns.get_level_values(0)
 
-# Date / Datetime / index のどれでも対応できる安全版
-if "Date" in df.columns:
-    date_col = "Date"
-elif "Datetime" in df.columns:
-    date_col = "Datetime"
-else:
-    # 週足で Date/Datetime が無い場合は index を使う
-    date_col = df.columns[0]
+    # ★ Date / Datetime / index のどれでも対応できる安全版
+    if "Date" in df.columns:
+        date_col = "Date"
+    elif "Datetime" in df.columns:
+        date_col = "Datetime"
+    else:
+        # 週足で Date/Datetime が無い場合は index を使う
+        date_col = df.columns[0]
 
-ohlc = []
-for _, row in df.iterrows():
-    ohlc.append({
-        "time": row[date_col].strftime("%Y-%m-%d"),
-        "open": float(row["Open"]),
-        "high": float(row["High"]),
-        "low": float(row["Low"]),
-        "close": float(row["Close"]),
-    })
+    ohlc = []
+    for _, row in df.iterrows():
+        ohlc.append({
+            "time": row[date_col].strftime("%Y-%m-%d"),
+            "open": float(row["Open"]),
+            "high": float(row["High"]),
+            "low": float(row["Low"]),
+            "close": float(row["Close"]),
+        })
 
-return ohlc
-
+    return ohlc
 ########
 
 @app.route('/')
