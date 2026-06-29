@@ -10,7 +10,7 @@ app = Flask(__name__)
 JPX_CSV_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 LOCAL_CSV = "jpx_list.xls"
 
-# 日経225用（HTMLテーブルから取得）
+# 日経225構成銘柄（ETF除外）を取得するURL
 NIKKEI225_URL = "https://indexes.nikkei.co.jp/nkave/index/component?idx=nk225"
 
 
@@ -50,7 +50,6 @@ def load_jpx_list():
         "その他"
     )
 
-    # コードの小さい順に固定
     df = df.sort_values(by="code", ascending=True)
 
     return df[["code", "name", "market", "sector17"]]
@@ -58,13 +57,14 @@ def load_jpx_list():
 
 def load_nikkei225_list():
     """
-    日経225採用銘柄のコード一覧を取得（起動時に毎回最新化）
+    日経225構成銘柄を取得（ETFは種類列で除外）
     """
     print("日経225銘柄一覧を取得中...")
     try:
         tables = pd.read_html(NIKKEI225_URL)
         df = tables[0]
-        # 列名はページ構造に依存するので、コードらしき列を探す
+
+        # コード列を探す
         code_col = None
         for col in df.columns:
             if "コード" in str(col) or "Code" in str(col):
@@ -73,19 +73,32 @@ def load_nikkei225_list():
         if code_col is None:
             raise ValueError("コード列が見つかりませんでした（日経225）")
 
+        # 種類列（ETF判定用）を探す
+        type_col = None
+        for col in df.columns:
+            if "種類" in str(col) or "Type" in str(col):
+                type_col = col
+                break
+
+        # ETF除外
+        if type_col:
+            df = df[df[type_col] != "ETF"]
+
         codes = df[code_col].astype(str).str.zfill(4).tolist()
-        print(f"日経225銘柄数: {len(codes)}")
+
+        print(f"日経225銘柄数（ETF除外後）: {len(codes)}")
         return codes
+
     except Exception as e:
         print("日経225銘柄取得エラー:", e)
         return []
 
 
+# 起動時に日経225リストを読み込む
 NIKKEI225_CODES = load_nikkei225_list()
 
 
 def fetch_real_data(ticker, interval="1d", period=None):
-    # interval に応じて期間を自動設定
     if period is None:
         if interval == "1d":
             period = "3mo"
@@ -159,6 +172,17 @@ def index():
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-bottom: 10px;
+            }
+
+            #market-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                justify-content: flex-start;   /* ★ グロースの右に自然に配置 */
+            }
+
+            #nikkei225-box {
+                margin-left: 12px;             /* ★ グロースの少し右に配置 */
             }
 
             #start-button {
@@ -252,21 +276,6 @@ def index():
                 text-decoration: none;
                 margin-right: 10px;
             }
-
-            /* 市場区分＋日経225を横並びにする */
-            #market-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 10px;
-            }
-
-            #nikkei225-box {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                font-size: 14px;
-            }
         </style>
     </head>
     <body>
@@ -333,6 +342,7 @@ def index():
 
             let drawing = false;
 
+            // ▼ 業種折りたたみ
             document.getElementById("toggle-sector").addEventListener("click", () => {
                 const box = document.getElementById("sector-box-wrapper");
                 const btn = document.getElementById("toggle-sector");
@@ -346,7 +356,7 @@ def index():
                 }
             });
 
-            // 17業種一覧を取得
+            // ▼ 17業種一覧を取得
             fetch("/api/sectors")
                 .then(res => res.json())
                 .then(json => {
@@ -376,7 +386,7 @@ def index():
                 });
             });
 
-            // 日経225チェックボックスの動作
+            // ▼ 日経225チェックボックスの動作
             const nikkei225Checkbox = document.getElementById("nikkei225");
             nikkei225Checkbox.addEventListener("change", (e) => {
                 const checked = e.target.checked;
@@ -391,12 +401,11 @@ def index():
                     document.querySelectorAll(".sector").forEach(cb => cb.checked = false);
                     selectedSectors = [];
 
-                    // 全業種チェックもオフ
                     document.getElementById("sector-all").checked = false;
                 }
             });
 
-            // 市場区分を触ったら日経225をオフ
+            // ▼ 市場区分を触ったら日経225をオフ
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("market")) {
                     selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
@@ -407,7 +416,7 @@ def index():
                 }
             });
 
-            // 業種を触ったら日経225をオフ
+            // ▼ 業種を触ったら日経225をオフ
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("sector")) {
                     selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
@@ -418,6 +427,7 @@ def index():
                 }
             });
 
+            // ▼ 描画開始
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
 
@@ -545,35 +555,26 @@ def index():
 
                 const ads = [
                     `
-                    <!-- A8広告1 -->
                     <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
                     `,
                     `
-                    <!-- A8広告2 -->
                     <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
                     `,
                     `
-                    <!-- A8広告3 -->
                     <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
-                    <!-- A8広告4 -->
                     <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
                     `,
                     `
-                    <!-- A8広告5 -->
                     <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
                     `,
                     `
-                    <!-- A8広告6 -->
                     <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
-                    <!-- A8広告7 -->
                     <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
                     `,
                     `
-                    <!-- A8広告8 -->
                     <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
                     `,
                     `
-                    <!-- A8広告9 -->
                     <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
                     `
                 ];
