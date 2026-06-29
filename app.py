@@ -4,7 +4,6 @@ import pandas as pd
 import os
 import datetime
 import requests
-import math
 
 app = Flask(__name__)
 
@@ -111,29 +110,16 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
-    # ★ ここが「直後」です（df が空かどうか確認できる）
-    print("DEBUG:", ticker, interval, "df.empty =", df.empty)
-    print(df.head())
-
     if df is None or df.empty:
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
     df = df.reset_index()
-
-    # ★ MultiIndex のときだけ get_level_values を使う（週足対策）
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-
-    # ★ Date / Datetime / index のどれでも対応できる安全版
-    if "Date" in df.columns:
-        date_col = "Date"
-    elif "Datetime" in df.columns:
-        date_col = "Datetime"
-    else:
-        date_col = df.columns[0]
+    df.columns = df.columns.get_level_values(0)
 
     ohlc = []
     for _, row in df.iterrows():
+        date_col = "Date" if "Date" in row else "Datetime"
+
         ohlc.append({
             "time": row[date_col].strftime("%Y-%m-%d"),
             "open": float(row["Open"]),
@@ -142,18 +128,9 @@ def fetch_real_data(ticker, interval="1d", period=None):
             "close": float(row["Close"]),
         })
 
-    print("DEBUG JSON:", ohlc)
+    return ohlc
 
-    cleaned = [row for row in ohlc if not (
-        math.isnan(row["open"]) or
-        math.isnan(row["high"]) or
-        math.isnan(row["low"]) or
-        math.isnan(row["close"])
-    )]
-
-    print("DEBUG CLEANED:", cleaned)
-    return jsonify({"data": cleaned})
-
+########
 
 @app.route('/')
 def index():
@@ -523,80 +500,61 @@ def index():
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
+                } else {
+                    currentInterval = nextInterval;
 
+                    const containers = document.querySelectorAll(".chart-container");
 
-} else {
-    currentInterval = nextInterval;
+                    containers.forEach(container => {
+                        const titleElement = container.querySelector(".chart-title");
+                        const area = container.querySelector(".chart-area");
 
-    const containers = document.querySelectorAll(".chart-container");
+                        const titleText = titleElement.innerText.trim();
+                        const tickerCode = titleText.split(" ")[0];
 
-    containers.forEach(container => {
-        const titleElement = container.querySelector(".chart-title");
-        const area = container.querySelector(".chart-area");
+                        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-        const titleText = titleElement.innerText.trim();
-        const tickerCode = titleText.split(" ")[0];
+                        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
+                            .then(res => res.json())
+                            .then(json => {
+                                if (!json.data) {
+                                    area.innerText = "データ取得エラー";
+                                    return;
+                                }
+                                area.innerHTML = "";
 
-        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
+                                const chart = LightweightCharts.createChart(area, {
+                                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+                                    handleScale: false,
+                                    handleScroll: false,
+                                    wheel: { scroll: false, pinch: false },
+                                    touch: { mode: 'none' },
+                                    drag: { scroll: false }
+                                });
 
-        // ★★★ 古いチャートが残っていたら削除（これが今回の修正ポイント）★★★
-        if (container._chart) {
-            try {
-                container._chart.remove();
-            } catch (e) {
-                console.error("旧チャート削除エラー:", e);
-            }
-        }
+                                const series = chart.addCandlestickSeries({
+                                    upColor: '#26a69a', downColor: '#ef5350',
+                                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+                                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+                                });
 
-        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
-            .then(res => res.json())
-            .then(json => {
-                if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
-                    area.innerText = "データ取得エラー";
-                    return;
+                                series.setData(json.data);
+                                chart.timeScale().fitContent();
+
+                                function resizeChart() {
+                                    const h = window.innerHeight * 0.23;
+                                    chart.resize(area.clientWidth, h);
+                                }
+                                window.addEventListener('resize', resizeChart);
+                                resizeChart();
+                            })
+                            .catch(() => {
+                                area.innerText = "データ取得エラー";
+                            });
+                    });
                 }
-
-                area.innerHTML = "";
-
-                // ★ 新しいチャートを作成
-                const chart = LightweightCharts.createChart(area, {
-                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-                    handleScale: false,
-                    handleScroll: false,
-                    wheel: { scroll: false, pinch: false },
-                    touch: { mode: 'none' },
-                    drag: { scroll: false }
-                });
-
-                // ★ container に新しいチャートを記憶（次回削除用）
-                container._chart = chart;
-
-                const series = chart.addCandlestickSeries({
-                    upColor: '#26a69a', downColor: '#ef5350',
-                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-                });
-
-                // ★ 新しい series にデータをセット
-                series.setData(json.data);
-                chart.timeScale().fitContent();
-
-                function resizeChart() {
-                    const h = window.innerHeight * 0.23;
-                    chart.resize(area.clientWidth, h);
-                }
-                window.addEventListener('resize', resizeChart);
-                resizeChart();
-            })
-            .catch(() => {
-                area.innerText = "データ取得エラー";
             });
-    });
-}
-
-
-
 
             async function loadNextPage() {
                 if (!drawing) return;
@@ -711,10 +669,10 @@ def index():
                     const res = await fetch(`/api/chart?ticker=${code}&interval=${currentInterval}`);
                     const json = await res.json();
 
-			if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
- 			    area.innerText = "データ取得エラー";
-			    return;
-			}
+                    if (!json.data) {
+                        area.innerText = "データ取得エラー";
+                        return;
+                    }
 
                     const chart = LightweightCharts.createChart(area, {
                         layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
@@ -805,9 +763,8 @@ def api_chart():
     interval = request.args.get('interval', "1d")
 
     try:
-        # fetch_real_data は jsonify({"data": cleaned}) を返すので、
-        # そのまま返すだけで OK
-        return fetch_real_data(ticker, interval=interval)
+        data = fetch_real_data(ticker, interval=interval)
+        return jsonify({"data": data})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
