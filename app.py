@@ -523,61 +523,80 @@ def index():
                     page = 1;
                     globalIndex = 0;
                     loadNextPage();
-                } else {
-                    currentInterval = nextInterval;
 
-                    const containers = document.querySelectorAll(".chart-container");
 
-                    containers.forEach(container => {
-                        const titleElement = container.querySelector(".chart-title");
-                        const area = container.querySelector(".chart-area");
+} else {
+    currentInterval = nextInterval;
 
-                        const titleText = titleElement.innerText.trim();
-                        const tickerCode = titleText.split(" ")[0];
+    const containers = document.querySelectorAll(".chart-container");
 
-                        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
+    containers.forEach(container => {
+        const titleElement = container.querySelector(".chart-title");
+        const area = container.querySelector(".chart-area");
 
-                        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
-                            .then(res => res.json())
-                            .then(json => {
-				if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
-				    area.innerText = "データ取得エラー";
-				    return;
-				}
-                                area.innerHTML = "";
+        const titleText = titleElement.innerText.trim();
+        const tickerCode = titleText.split(" ")[0];
 
-                                const chart = LightweightCharts.createChart(area, {
-                                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-                                    handleScale: false,
-                                    handleScroll: false,
-                                    wheel: { scroll: false, pinch: false },
-                                    touch: { mode: 'none' },
-                                    drag: { scroll: false }
-                                });
+        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-                                const series = chart.addCandlestickSeries({
-                                    upColor: '#26a69a', downColor: '#ef5350',
-                                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-                                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-                                });
+        // ★★★ 古いチャートが残っていたら削除（これが今回の修正ポイント）★★★
+        if (container._chart) {
+            try {
+                container._chart.remove();
+            } catch (e) {
+                console.error("旧チャート削除エラー:", e);
+            }
+        }
 
-                                series.setData(json.data);
-                                chart.timeScale().fitContent();
-
-                                function resizeChart() {
-                                    const h = window.innerHeight * 0.23;
-                                    chart.resize(area.clientWidth, h);
-                                }
-                                window.addEventListener('resize', resizeChart);
-                                resizeChart();
-                            })
-                            .catch(() => {
-                                area.innerText = "データ取得エラー";
-                            });
-                    });
+        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
+            .then(res => res.json())
+            .then(json => {
+                if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
+                    area.innerText = "データ取得エラー";
+                    return;
                 }
+
+                area.innerHTML = "";
+
+                // ★ 新しいチャートを作成
+                const chart = LightweightCharts.createChart(area, {
+                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+                    handleScale: false,
+                    handleScroll: false,
+                    wheel: { scroll: false, pinch: false },
+                    touch: { mode: 'none' },
+                    drag: { scroll: false }
+                });
+
+                // ★ container に新しいチャートを記憶（次回削除用）
+                container._chart = chart;
+
+                const series = chart.addCandlestickSeries({
+                    upColor: '#26a69a', downColor: '#ef5350',
+                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+                });
+
+                // ★ 新しい series にデータをセット
+                series.setData(json.data);
+                chart.timeScale().fitContent();
+
+                function resizeChart() {
+                    const h = window.innerHeight * 0.23;
+                    chart.resize(area.clientWidth, h);
+                }
+                window.addEventListener('resize', resizeChart);
+                resizeChart();
+            })
+            .catch(() => {
+                area.innerText = "データ取得エラー";
             });
+    });
+}
+
+
+
 
             async function loadNextPage() {
                 if (!drawing) return;
