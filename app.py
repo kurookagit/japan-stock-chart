@@ -522,6 +522,8 @@ def index():
                         fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
+                                console.log(json);   
+
                                 if (!json.data || json.data.length === 0) {
                                     area.innerText = "データ取得エラー";
                                     return;
