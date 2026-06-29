@@ -524,6 +524,7 @@ def index():
                             .then(res => res.json())
                             .then(json => {
                                 console.log(json);   
+                                console.log("WEEKLY DATA:", json.data);
 
 		    console.log("FLAGS:", {
 		        isInitial,
