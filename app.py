@@ -100,7 +100,6 @@ NIKKEI225_CODES = load_nikkei225_list()
 
 
 def fetch_real_data(ticker, interval="1d", period=None):
-    # interval に応じて期間を自動設定
     if period is None:
         if interval == "1d":
             period = "3mo"
@@ -115,7 +114,10 @@ def fetch_real_data(ticker, interval="1d", period=None):
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
     df = df.reset_index()
-    df.columns = df.columns.get_level_values(0)
+
+    # ★ MultiIndex のときだけ get_level_values を使う（週足対策）
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
 
     # ★ Date / Datetime / index のどれでも対応できる安全版
     if "Date" in df.columns:
@@ -123,7 +125,6 @@ def fetch_real_data(ticker, interval="1d", period=None):
     elif "Datetime" in df.columns:
         date_col = "Datetime"
     else:
-        # 週足で Date/Datetime が無い場合は index を使う
         date_col = df.columns[0]
 
     ohlc = []
@@ -138,7 +139,6 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
     return ohlc
 
-########
 
 @app.route('/')
 def index():
