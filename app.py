@@ -167,7 +167,7 @@ def index():
 
     #filter-bar h3 {
         margin: 5px 0;
-        font-size: 14px;   /* ← 市場区分の基準サイズ */
+        font-size: 14px;   /* 市場区分と同じサイズ */
     }
 
     .filter-group {
@@ -177,31 +177,36 @@ def index():
         margin-bottom: 10px;
     }
 
-    /* 市場区分と日経225を横並びにする行 */
+    /* 市場区分と日経225の行 */
     #market-row {
         display: flex;
         align-items: center;
         gap: 10px;
-        flex-wrap: wrap;          /* ← スマホで折り返し可能 */
-        justify-content: flex-start; /* ← 左寄せ（重要） */
+        flex-wrap: wrap;          /* スマホで折り返し可能 */
+        justify-content: flex-start; /* 左寄せ（重要） */
     }
 
-    /* 市場区分のチェックボックスラベル */
+    /* 市場区分のラベル（プライム・スタンダード・グロース） */
     .market-label,
     .filter-group label {
-        font-size: 14px;          /* ← 市場区分と統一 */
+        font-size: 14px;          /* 統一サイズ */
     }
 
     /* 日経225ボタン */
     #nikkei225-box {
-        font-size: 14px;          /* ← 市場区分と統一 */
-        margin-left: 4px;         /* ← グロースのすぐ右に寄せる */
+        font-size: 14px;          /* 統一サイズ */
+        margin-left: 4px;         /* グロースのすぐ右に寄せる */
         padding: 3px 6px;
-        border: 1px solid #4da3ff;
+        border: none;             /* ★ 青い枠を完全削除 */
         border-radius: 6px;
         background-color: #2a2e39;
         cursor: pointer;
         white-space: nowrap;
+    }
+
+    /* 日足・週足・月足の文字サイズも統一 */
+    #interval-row label {
+        font-size: 14px;          /* 市場区分と同じサイズ */
     }
 
     #start-button {
@@ -300,12 +305,13 @@ def index():
     @media (max-width: 480px) {
         .market-label,
         .filter-group label,
-        #nikkei225-box {
-            font-size: 12px;      /* ← スマホでは少し小さく */
+        #nikkei225-box,
+        #interval-row label {
+            font-size: 12px;      /* スマホでは少し小さく */
         }
 
         #market-row {
-            gap: 6px;             /* ← スマホでは間隔を少し狭く */
+            gap: 6px;             /* スマホでは間隔を少し狭く */
         }
     }
 </style>
