@@ -55,20 +55,17 @@ def load_jpx_list():
     return df[["code", "name", "market", "sector17"]]
 
 
+from bs4 import BeautifulSoup
+
+
+
 def load_nikkei225_list():
     print("日経225銘柄一覧を取得中...")
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36"
-        }
-        html = requests.get(NIKKEI225_URL, headers=headers).text
-        soup = BeautifulSoup(html, "lxml")
+        url = "https://indexes.nikkei.co.jp/nkave/archives/data/nk225.csv"
+        df = pd.read_csv(url)
 
-        # 日経225の構成銘柄テーブル（コード・銘柄名・社名）
-        table = soup.find("table", class_="table")
-        df = pd.read_html(str(table))[0]
-
-        # 「コード」列だけ抽出（ETFはそもそも含まれていない）
+        # コード列をゼロ埋め
         codes = df["コード"].astype(str).str.zfill(4).tolist()
 
         print(f"日経225銘柄数: {len(codes)}")
@@ -77,7 +74,6 @@ def load_nikkei225_list():
     except Exception as e:
         print("日経225銘柄取得エラー:", e)
         return []
-
 
 
 
