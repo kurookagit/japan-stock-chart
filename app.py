@@ -116,6 +116,11 @@ def fetch_real_data(ticker, interval="1d", period=None):
     df = df.reset_index()
     df.columns = df.columns.get_level_values(0)
 
+    print("=== DEBUG WEEKLY DATA ===")
+    print(df.head())
+    print(df.columns)
+
+
     ohlc = []
     for _, row in df.iterrows():
         date_col = "Date" if "Date" in df.columns else "Datetime"
