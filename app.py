@@ -325,17 +325,18 @@ def index():
             <div id="site-title">東証チャートの縦流し</div>
 
             <h3>市場区分（複数選択可）</h3>
-            <div id="market-row">
-                <div class="filter-group">
-                    <label><input type="checkbox" class="market" value="プライム"> プライム</label>
-                    <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
-                    <label><input type="checkbox" class="market" value="グロース"> グロース</label>
-                </div>
+<div id="market-row">
+    <div class="filter-group">
+        <label><input type="checkbox" class="market" value="プライム"> プライム</label>
+        <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
+        <label><input type="checkbox" class="market" value="グロース"> グロース</label>
+    </div>
 
-                <div id="nikkei225-box">
-                    <label><input type="checkbox" id="nikkei225"> 日経225</label>
-                </div>
-            </div>
+    <!-- ★ ここを filter-group と同じ構造にする -->
+    <div class="filter-group" id="nikkei225-box">
+        <label><input type="checkbox" id="nikkei225"> 日経225</label>
+    </div>
+</div>
 
             <h3>足種（1つだけ）</h3>
             <div id="interval-row">
