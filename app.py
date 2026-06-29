@@ -328,7 +328,7 @@ def index():
 
             <h3>市場区分（複数選択可）</h3>
             <div id="market-row">
-                <div class="filter-group" style="flex: 1;">
+                <div class="filter-group">
                     <label><input type="checkbox" class="market" value="プライム"> プライム</label>
                     <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
                     <label><input type="checkbox" class="market" value="グロース"> グロース</label>
