@@ -56,42 +56,29 @@ def load_jpx_list():
 
 
 def load_nikkei225_list():
-    """
-    日経225構成銘柄を取得（ETFは種類列で除外）
-    """
     print("日経225銘柄一覧を取得中...")
     try:
-        tables = pd.read_html(NIKKEI225_URL)
-        df = tables[0]
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36"
+        }
+        html = requests.get(NIKKEI225_URL, headers=headers).text
+        soup = BeautifulSoup(html, "lxml")
 
-        # コード列を探す
-        code_col = None
-        for col in df.columns:
-            if "コード" in str(col) or "Code" in str(col):
-                code_col = col
-                break
-        if code_col is None:
-            raise ValueError("コード列が見つかりませんでした（日経225）")
+        # 日経225の構成銘柄テーブル（コード・銘柄名・社名）
+        table = soup.find("table", class_="table")
+        df = pd.read_html(str(table))[0]
 
-        # 種類列（ETF判定用）を探す
-        type_col = None
-        for col in df.columns:
-            if "種類" in str(col) or "Type" in str(col):
-                type_col = col
-                break
+        # 「コード」列だけ抽出（ETFはそもそも含まれていない）
+        codes = df["コード"].astype(str).str.zfill(4).tolist()
 
-        # ETF除外
-        if type_col:
-            df = df[df[type_col] != "ETF"]
-
-        codes = df[code_col].astype(str).str.zfill(4).tolist()
-
-        print(f"日経225銘柄数（ETF除外後）: {len(codes)}")
+        print(f"日経225銘柄数: {len(codes)}")
         return codes
 
     except Exception as e:
         print("日経225銘柄取得エラー:", e)
         return []
+
+
 
 
 # 起動時に日経225リストを読み込む
