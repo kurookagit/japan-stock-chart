@@ -487,7 +487,7 @@ def index():
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
                 const isNikkeiChanged = selectedNikkei225 !== nextNikkei225;
-                const isIntervalSame = currentInterval === nextInterval;
+                const isIntervalChanged = currentInterval !== nextInterval;
                 const isInitial = document.getElementById("app").innerHTML === "";
 
                 selectedMarkets = nextMarkets;
@@ -497,7 +497,7 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalSame) {
+                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalChanged) {
                     currentInterval = nextInterval;
 
                     document.getElementById("app").innerHTML = "";
