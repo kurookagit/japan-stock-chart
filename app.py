@@ -10,6 +10,9 @@ app = Flask(__name__)
 JPX_CSV_URL = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 LOCAL_CSV = "jpx_list.xls"
 
+# 日経225用（HTMLテーブルから取得）
+NIKKEI225_URL = "https://indexes.nikkei.co.jp/nkave/index/component?idx=nk225"
+
 
 def update_jpx_list():
     today = datetime.date.today()
@@ -53,6 +56,34 @@ def load_jpx_list():
     return df[["code", "name", "market", "sector17"]]
 
 
+def load_nikkei225_list():
+    """
+    日経225採用銘柄のコード一覧を取得（起動時に毎回最新化）
+    """
+    print("日経225銘柄一覧を取得中...")
+    try:
+        tables = pd.read_html(NIKKEI225_URL)
+        df = tables[0]
+        # 列名はページ構造に依存するので、コードらしき列を探す
+        code_col = None
+        for col in df.columns:
+            if "コード" in str(col) or "Code" in str(col):
+                code_col = col
+                break
+        if code_col is None:
+            raise ValueError("コード列が見つかりませんでした（日経225）")
+
+        codes = df[code_col].astype(str).str.zfill(4).tolist()
+        print(f"日経225銘柄数: {len(codes)}")
+        return codes
+    except Exception as e:
+        print("日経225銘柄取得エラー:", e)
+        return []
+
+
+NIKKEI225_CODES = load_nikkei225_list()
+
+
 def fetch_real_data(ticker, interval="1d", period=None):
     # interval に応じて期間を自動設定
     if period is None:
@@ -71,7 +102,6 @@ def fetch_real_data(ticker, interval="1d", period=None):
     df = df.reset_index()
     df.columns = df.columns.get_level_values(0)
 
-    # Date / Datetime のどちらかを使う（元のあなたのロジックに戻す）
     ohlc = []
     for _, row in df.iterrows():
         date_col = "Date" if "Date" in row else "Datetime"
@@ -190,78 +220,86 @@ def index():
                 font-size: 14px;
             }
 
-	    #site-title {
-    	    	position: absolute;
-    	    	top: 6px;          /* 少し上に詰める */
-	        right: 10px;
-    	        background: #007bff;
-	        color: white;
-	        padding: 3px 10px; /* ★ 縦の余白を半分にする（重要） */
-	        border-radius: 4px;
-	        font-size: 14px;   /* 少し小さくしてスマホでの圧迫を減らす */
-	        font-weight: bold;
-	        z-index: 1000;
+            #site-title {
+                position: absolute;
+                top: 6px;
+                right: 10px;
+                background: #007bff;
+                color: white;
+                padding: 3px 10px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 1000;
+                margin-right: 10px;
+            }
 
-	        /* ★ ここを少し左へ寄せる（重要） */
-	        margin-right: 10px;   /* 右端から少し余裕を作る */
+            #interval-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                margin-top: 5px;
+            }
 
-	        /* flex 行の右端に置くので absolute は不要 */
-	    }
+            #pc-link {
+                background: #4da3ff;
+                color: white;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                text-decoration: none;
+                margin-right: 10px;
+            }
 
-	    #interval-row {
-	        display: flex;
-	        justify-content: space-between;  /* 左：足種　右：PC画面 */
-	        align-items: center;
-	        position: relative;
-	        margin-top: 5px;
-	    }
+            /* 市場区分＋日経225を横並びにする */
+            #market-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
 
-	    #pc-link {
-	        background: #4da3ff;   /* 薄い青 */
-	        color: white;
-	        padding: 4px 10px;
-	        border-radius: 6px;
-	        font-size: 14px;
-	        font-weight: bold;
-	        text-decoration: none;
-
-	        /* ★ ここを少し左へ寄せる（重要） */
-	        margin-right: 10px;   /* 右端から少し余裕を作る */
-
-	        /* flex 行の右端に置くので absolute は不要 */
-	    }
-	    
+            #nikkei225-box {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 14px;
+            }
         </style>
     </head>
     <body>
 
-        <!-- 市場区分 -->
         <div id="filter-bar">
 
-	    <div id="site-title">東証チャートの縦流し</div>
+            <div id="site-title">東証チャートの縦流し</div>
 
             <h3>市場区分（複数選択可）</h3>
-            <div class="filter-group">
-                <label><input type="checkbox" class="market" value="プライム"> プライム</label>
-                <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
-                <label><input type="checkbox" class="market" value="グロース"> グロース</label>
+            <div id="market-row">
+                <div class="filter-group" style="flex: 1;">
+                    <label><input type="checkbox" class="market" value="プライム"> プライム</label>
+                    <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
+                    <label><input type="checkbox" class="market" value="グロース"> グロース</label>
+                </div>
+
+                <div id="nikkei225-box">
+                    <label><input type="checkbox" id="nikkei225"> 日経225</label>
+                </div>
             </div>
 
-	    <h3>足種（1つだけ）</h3>
+            <h3>足種（1つだけ）</h3>
+            <div id="interval-row">
+                <div class="interval-options">
+                    <label><input type="radio" name="interval" value="1d" checked> 日足</label>
+                    <label><input type="radio" name="interval" value="1wk"> 週足</label>
+                    <label><input type="radio" name="interval" value="1mo"> 月足</label>
+                </div>
 
-	    <div id="interval-row">
-	        <div class="interval-options">
-	            <label><input type="radio" name="interval" value="1d" checked> 日足</label>
-	            <label><input type="radio" name="interval" value="1wk"> 週足</label>
-	            <label><input type="radio" name="interval" value="1mo"> 月足</label>
-	        </div>
+                <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
+            </div>
 
-	        <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
-	    </div>
-
-            <!-- ▼▼▼ ここから業種折りたたみ ▼▼▼ -->
             <h3>17業種</h3>
-
             <button id="toggle-sector" style="
                 width:100%; padding:10px; background:#2a2e39; color:white;
                 border:none; border-radius:6px; font-size:15px; margin-bottom:10px;">
@@ -274,7 +312,6 @@ def index():
                 </div>
                 <div class="filter-group" id="sector-box"></div>
             </div>
-            <!-- ▲▲▲ ここまで業種折りたたみ ▲▲▲ -->
 
             <button id="start-button">描画開始</button>
         </div>
@@ -292,10 +329,10 @@ def index():
 
             let selectedMarkets = [];
             let selectedSectors = [];
+            let selectedNikkei225 = false;
 
             let drawing = false;
 
-            // ▼ 業種選択エリアの開閉
             document.getElementById("toggle-sector").addEventListener("click", () => {
                 const box = document.getElementById("sector-box-wrapper");
                 const btn = document.getElementById("toggle-sector");
@@ -339,40 +376,72 @@ def index():
                 });
             });
 
+            // 日経225チェックボックスの動作
+            const nikkei225Checkbox = document.getElementById("nikkei225");
+            nikkei225Checkbox.addEventListener("change", (e) => {
+                const checked = e.target.checked;
+                selectedNikkei225 = checked;
+
+                if (checked) {
+                    // 市場区分を全部オフ
+                    document.querySelectorAll(".market").forEach(cb => cb.checked = false);
+                    selectedMarkets = [];
+
+                    // 17業種を全部オフ
+                    document.querySelectorAll(".sector").forEach(cb => cb.checked = false);
+                    selectedSectors = [];
+
+                    // 全業種チェックもオフ
+                    document.getElementById("sector-all").checked = false;
+                }
+            });
+
+            // 市場区分を触ったら日経225をオフ
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("market")) {
                     selectedMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
+                    if (selectedMarkets.length > 0) {
+                        nikkei225Checkbox.checked = false;
+                        selectedNikkei225 = false;
+                    }
                 }
             });
 
+            // 業種を触ったら日経225をオフ
             document.addEventListener("change", e => {
                 if (e.target.classList.contains("sector")) {
                     selectedSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
+                    if (selectedSectors.length > 0) {
+                        nikkei225Checkbox.checked = false;
+                        selectedNikkei225 = false;
+                    }
                 }
             });
 
-            // ▼ 描画開始ボタン
             document.getElementById("start-button").addEventListener("click", () => {
                 drawing = true;
 
                 const nextMarkets = [...document.querySelectorAll(".market:checked")].map(x => x.value);
                 const nextSectors = [...document.querySelectorAll(".sector:checked")].map(x => x.value);
-                
+                const nextNikkei225 = document.getElementById("nikkei225").checked;
+
                 const checkedInterval = document.querySelector("input[name='interval']:checked");
                 const nextInterval = checkedInterval ? checkedInterval.value : "1d";
 
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
+                const isNikkeiChanged = selectedNikkei225 !== nextNikkei225;
                 const isIntervalSame = currentInterval === nextInterval;
                 const isInitial = document.getElementById("app").innerHTML === "";
 
                 selectedMarkets = nextMarkets;
                 selectedSectors = nextSectors;
+                selectedNikkei225 = nextNikkei225;
 
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                if (isInitial || isMarketChanged || isSectorChanged || isIntervalSame) {
+                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalSame) {
                     currentInterval = nextInterval;
 
                     document.getElementById("app").innerHTML = "";
@@ -384,13 +453,12 @@ def index():
                     currentInterval = nextInterval;
 
                     const containers = document.querySelectorAll(".chart-container");
-                    
+
                     containers.forEach(container => {
                         const titleElement = container.querySelector(".chart-title");
                         const area = container.querySelector(".chart-area");
-                        
+
                         const titleText = titleElement.innerText.trim();
-                        // 先頭のコードだけを取り出す
                         const tickerCode = titleText.split(" ")[0];
 
                         area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
@@ -404,16 +472,15 @@ def index():
                                 }
                                 area.innerHTML = "";
 
-				const chart = LightweightCharts.createChart(area, {
-				    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-				    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-				
-				    handleScale: false,
-				    handleScroll: false,
-				    wheel: { scroll: false, pinch: false },
-				    touch: { mode: 'none' },
-				    drag: { scroll: false }
-				});
+                                const chart = LightweightCharts.createChart(area, {
+                                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+                                    handleScale: false,
+                                    handleScroll: false,
+                                    wheel: { scroll: false, pinch: false },
+                                    touch: { mode: 'none' },
+                                    drag: { scroll: false }
+                                });
 
                                 const series = chart.addCandlestickSeries({
                                     upColor: '#26a69a', downColor: '#ef5350',
@@ -446,7 +513,8 @@ def index():
                 const params = new URLSearchParams({
                     page: page,
                     markets: selectedMarkets.join(","),
-                    sectors: selectedSectors.join(",")
+                    sectors: selectedSectors.join(","),
+                    nikkei225: selectedNikkei225 ? "1" : "0"
                 });
 
                 const res = await fetch(`/api/list?${params}`);
@@ -472,57 +540,52 @@ def index():
                 loading = false;
             }
 
-		function createAdBlock() {
-		    const app = document.getElementById('app');
-		
-		    // ★ A8 の広告コードを複数登録（ここにあなたの広告コードを貼る）
-		    const ads = [
-		        `
-		        <!-- A8広告1 -->
-		        <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
-		        `,
-		        `
-		        <!-- A8広告2 -->
-		        <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
-		        `,
-		        `
-		        <!-- A8広告3 -->
-		        <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
+            function createAdBlock() {
+                const app = document.getElementById('app');
 
-		        <!-- A8広告4 -->
-		        <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
-		        `,
-		        `
-		        <!-- A8広告5 -->
-		        <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
-		        `,
-		        `
-		        <!-- A8広告6 -->
-		        <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
+                const ads = [
+                    `
+                    <!-- A8広告1 -->
+                    <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
+                    `,
+                    `
+                    <!-- A8広告2 -->
+                    <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
+                    `,
+                    `
+                    <!-- A8広告3 -->
+                    <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
+                    <!-- A8広告4 -->
+                    <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
+                    `,
+                    `
+                    <!-- A8広告5 -->
+                    <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
+                    `,
+                    `
+                    <!-- A8広告6 -->
+                    <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
+                    <!-- A8広告7 -->
+                    <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
+                    `,
+                    `
+                    <!-- A8広告8 -->
+                    <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
+                    `,
+                    `
+                    <!-- A8広告9 -->
+                    <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
+                    `
+                ];
 
-		        <!-- A8広告7 -->
-		        <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
-		        `,
-		        `
-		        <!-- A8広告8 -->
-		        <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
-		        `,
-		        `
-		        <!-- A8広告9 -->
-		        <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
-		        `
-		    ];
-		
-		    // ★ ランダムに1つ選ぶ
-		    const randomAd = ads[Math.floor(Math.random() * ads.length)];
-		
-		    // ★ 広告ブロックを作成
-		    const ad = document.createElement('div');
-		    ad.className = 'ad-banner';
-		    ad.innerHTML = randomAd;
-		
-		    app.appendChild(ad);
-		}
+                const randomAd = ads[Math.floor(Math.random() * ads.length)];
+
+                const ad = document.createElement('div');
+                ad.className = 'ad-banner';
+                ad.innerHTML = randomAd;
+
+                app.appendChild(ad);
+            }
 
             async function createChartCard(code, name) {
                 const app = document.getElementById('app');
@@ -541,12 +604,10 @@ def index():
 
                 app.appendChild(box);
 
-                // PC の click
                 area.addEventListener("click", () => {
                     window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
                 });
 
-                // スマホ誤タップ防止
                 let touchStartY = 0;
                 let touchEndY = 0;
 
@@ -571,16 +632,15 @@ def index():
                         return;
                     }
 
-		const chart = LightweightCharts.createChart(area, {
-		    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-		    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-		
-		    handleScale: false,
-		    handleScroll: false,
-		    wheel: { scroll: false, pinch: false },
-		    touch: { mode: 'none' },
-		    drag: { scroll: false }
-		});
+                    const chart = LightweightCharts.createChart(area, {
+                        layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                        grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+                        handleScale: false,
+                        handleScroll: false,
+                        wheel: { scroll: false, pinch: false },
+                        touch: { mode: 'none' },
+                        drag: { scroll: false }
+                    });
 
                     const series = chart.addCandlestickSeries({
                         upColor: '#26a69a', downColor: '#ef5350',
@@ -629,20 +689,23 @@ def api_list():
 
     markets = request.args.get("markets", "").split(",")
     sectors = request.args.get("sectors", "").split(",")
+    nikkei225_flag = request.args.get("nikkei225", "0") == "1"
 
     df = load_jpx_list()
 
-    if markets and markets != [""]:
-        df = df[df["market"].apply(
-            lambda x: isinstance(x, str) and any(m in x for m in markets)
-        )]
+    if nikkei225_flag and NIKKEI225_CODES:
+        df = df[df["code"].isin(NIKKEI225_CODES)]
+    else:
+        if markets and markets != [""]:
+            df = df[df["market"].apply(
+                lambda x: isinstance(x, str) and any(m in x for m in markets)
+            )]
 
-    if sectors and sectors != [""]:
-        df = df[df["sector17"].apply(
-            lambda x: isinstance(x, str) and any(s in x for s in sectors)
-        )]
+        if sectors and sectors != [""]:
+            df = df[df["sector17"].apply(
+                lambda x: isinstance(x, str) and any(s in x for s in sectors)
+            )]
 
-    # 絞り込み後もコード順を維持
     df = df.sort_values(by="code", ascending=True)
 
     start = (page - 1) * per_page
