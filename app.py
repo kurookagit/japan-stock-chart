@@ -58,22 +58,40 @@ def load_jpx_list():
 from bs4 import BeautifulSoup
 
 
-
 def load_nikkei225_list():
-    print("日経225銘柄一覧を取得中...")
-    try:
-        url = "https://indexes.nikkei.co.jp/nkave/archives/data/nk225.csv"
-        df = pd.read_csv(url)
+    print("Wikipediaから日経225銘柄を取得中...")
 
-        # コード列をゼロ埋め
-        codes = df["コード"].astype(str).str.zfill(4).tolist()
+    import requests
+    from bs4 import BeautifulSoup
 
-        print(f"日経225銘柄数: {len(codes)}")
-        return codes
+    url = "https://ja.wikipedia.org/wiki/%E6%97%A5%E7%B5%8C225"
+    r = requests.get(url, timeout=10)
+    r.raise_for_status()
 
-    except Exception as e:
-        print("日経225銘柄取得エラー:", e)
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    # 「構成銘柄」の表を探す
+    tables = soup.find_all("table", {"class": "wikitable"})
+    if not tables:
+        print("Wikipediaの表が見つかりません")
         return []
+
+    # 最初のwikitableが日経225の構成銘柄表
+    table = tables[0]
+
+    codes = []
+    for row in table.find_all("tr")[1:]:  # ヘッダーを除く
+        cols = row.find_all("td")
+        if len(cols) < 2:
+            continue
+
+        code = cols[0].text.strip()
+        if code.isdigit():
+            codes.append(code.zfill(4))
+
+    print(f"日経225銘柄数（Wikipedia）: {len(codes)}")
+    return codes
+
 
 
 
@@ -111,25 +129,6 @@ def fetch_real_data(ticker, interval="1d", period=None):
         })
 
     return ohlc
-
-########
-
-@app.route("/check_nikkei")
-def check_nikkei():
-    import requests
-
-    url = "https://indexes.nikkei.co.jp/nkave/index/component?idx=nk225"
-    try:
-        r = requests.get(url, timeout=10)
-        return {
-            "status_code": r.status_code,
-            "content_length": len(r.text),
-            "first_200_chars": r.text[:200]
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-
 
 ########
 
