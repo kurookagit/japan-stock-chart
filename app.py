@@ -144,141 +144,174 @@ def index():
 
         <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-                background-color: #131722;
-                color: #d1d4dc;
-                font-family: sans-serif;
-            }
 
-            #filter-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                z-index: 999;
-                background: #1c2030;
-                padding: 10px;
-                border-bottom: 1px solid #333;
-            }
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #131722;
+        color: #d1d4dc;
+        font-family: sans-serif;
+    }
 
-            #filter-bar h3 {
-                margin: 5px 0;
-                font-size: 14px;
-            }
+    #filter-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+        background: #1c2030;
+        padding: 10px;
+        border-bottom: 1px solid #333;
+    }
 
-            .filter-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 10px;
-            }
+    #filter-bar h3 {
+        margin: 5px 0;
+        font-size: 14px;   /* ← 市場区分の基準サイズ */
+    }
 
-            #market-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                justify-content: flex-start;   /* ★ グロースの右に自然に配置 */
-            }
+    .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
 
-            #nikkei225-box {
-                margin-left: 12px;             /* ★ グロースの少し右に配置 */
-            }
+    /* 市場区分と日経225を横並びにする行 */
+    #market-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;          /* ← スマホで折り返し可能 */
+        justify-content: flex-start; /* ← 左寄せ（重要） */
+    }
 
-            #start-button {
-                width: 100%;
-                padding: 10px;
-                background: #26a69a;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-size: 16px;
-                margin-top: 10px;
-                cursor: pointer;
-            }
+    /* 市場区分のチェックボックスラベル */
+    .market-label,
+    .filter-group label {
+        font-size: 14px;          /* ← 市場区分と統一 */
+    }
 
-            #content {
-                padding-top: 340px;
-            }
+    /* 日経225ボタン */
+    #nikkei225-box {
+        font-size: 14px;          /* ← 市場区分と統一 */
+        margin-left: 4px;         /* ← グロースのすぐ右に寄せる */
+        padding: 3px 6px;
+        border: 1px solid #4da3ff;
+        border-radius: 6px;
+        background-color: #2a2e39;
+        cursor: pointer;
+        white-space: nowrap;
+    }
 
-            .chart-container {
-                margin: 10px;
-                background: #1c2030;
-                border-radius: 6px;
-                padding: 6px;
-            }
+    #start-button {
+        width: 100%;
+        padding: 10px;
+        background: #26a69a;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
 
-            .chart-title {
-                font-size: 14px;
-                font-weight: bold;
-                margin-bottom: 4px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
+    #content {
+        padding-top: 340px;
+    }
 
-            .chart-area {
-                width: 100%;
-                height: 23vh;
-                min-height: 150px;
-                cursor: pointer;
-            }
+    .chart-container {
+        margin: 10px;
+        background: #1c2030;
+        border-radius: 6px;
+        padding: 6px;
+    }
 
-            .ad-banner {
-                width: 100%;
-                height: 80px;
-                background: #2a2e39;
-                border-radius: 6px;
-                margin: 10px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                color: #aaa;
-                font-size: 14px;
-            }
+    .chart-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-            #loading {
-                text-align: center;
-                padding: 20px;
-                color: #aaa;
-                font-size: 14px;
-            }
+    .chart-area {
+        width: 100%;
+        height: 23vh;
+        min-height: 150px;
+        cursor: pointer;
+    }
 
-            #site-title {
-                position: absolute;
-                top: 6px;
-                right: 10px;
-                background: #007bff;
-                color: white;
-                padding: 3px 10px;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: bold;
-                z-index: 1000;
-                margin-right: 10px;
-            }
+    .ad-banner {
+        width: 100%;
+        height: 80px;
+        background: #2a2e39;
+        border-radius: 6px;
+        margin: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #aaa;
+        font-size: 14px;
+    }
 
-            #interval-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                position: relative;
-                margin-top: 5px;
-            }
+    #loading {
+        text-align: center;
+        padding: 20px;
+        color: #aaa;
+        font-size: 14px;
+    }
 
-            #pc-link {
-                background: #4da3ff;
-                color: white;
-                padding: 4px 10px;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: bold;
-                text-decoration: none;
-                margin-right: 10px;
-            }
-        </style>
+    #site-title {
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        background: #007bff;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        margin-right: 10px;
+    }
+
+    #interval-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        margin-top: 5px;
+    }
+
+    #pc-link {
+        background: #4da3ff;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+
+    /* スマホ向け調整 */
+    @media (max-width: 480px) {
+        .market-label,
+        .filter-group label,
+        #nikkei225-box {
+            font-size: 12px;      /* ← スマホでは少し小さく */
+        }
+
+        #market-row {
+            gap: 6px;             /* ← スマホでは間隔を少し狭く */
+        }
+    }
+</style>
+
+
+
     </head>
     <body>
 
