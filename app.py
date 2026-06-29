@@ -118,7 +118,7 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
     ohlc = []
     for _, row in df.iterrows():
-        date_col = "Date" if "Date" in row else "Datetime"
+        date_col = "Date" if "Date" in df.columns else "Datetime"
 
         ohlc.append({
             "time": row[date_col].strftime("%Y-%m-%d"),
