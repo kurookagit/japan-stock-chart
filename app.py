@@ -112,6 +112,26 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
     return ohlc
 
+########
+
+@app.route("/check_nikkei")
+def check_nikkei():
+    import requests
+
+    url = "https://indexes.nikkei.co.jp/nkave/index/component?idx=nk225"
+    try:
+        r = requests.get(url, timeout=10)
+        return {
+            "status_code": r.status_code,
+            "content_length": len(r.text),
+            "first_200_chars": r.text[:200]
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+
+########
 
 @app.route('/')
 def index():
