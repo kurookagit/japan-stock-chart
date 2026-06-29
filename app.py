@@ -110,6 +110,10 @@ def fetch_real_data(ticker, interval="1d", period=None):
 
     df = yf.download(f"{ticker}.T", period=period, interval=interval)
 
+# ★ ここが「直後」です（df が空かどうか確認できる）
+print("DEBUG:", ticker, interval, "df.empty =", df.empty)
+print(df.head())
+
     if df is None or df.empty:
         raise ValueError(f"データが取得できませんでした: {ticker}")
 
