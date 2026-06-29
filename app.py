@@ -137,6 +137,7 @@ def fetch_real_data(ticker, interval="1d", period=None):
         })
 
     return ohlc
+
 ########
 
 @app.route('/')
