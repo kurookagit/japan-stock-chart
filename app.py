@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import datetime
 import requests
+import math
 
 app = Flask(__name__)
 
@@ -142,7 +143,16 @@ def fetch_real_data(ticker, interval="1d", period=None):
         })
 
     print("DEBUG JSON:", ohlc)
-    return jsonify({"data": ohlc})
+
+    cleaned = [row for row in ohlc if not (
+        math.isnan(row["open"]) or
+        math.isnan(row["high"]) or
+        math.isnan(row["low"]) or
+        math.isnan(row["close"])
+    )]
+
+    print("DEBUG CLEANED:", cleaned)
+    return jsonify({"data": cleaned})
 
 
 @app.route('/')
