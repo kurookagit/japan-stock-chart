@@ -141,6 +141,7 @@ def fetch_real_data(ticker, interval="1d", period=None):
             "close": float(row["Close"]),
         })
 
+    print("DEBUG JSON:", ohlc)
     return jsonify({"data": ohlc})
 
 
