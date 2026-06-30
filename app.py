@@ -314,6 +314,17 @@ def index():
             gap: 6px;
         }
     }
+#top-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+#toggle-sector,
+#start-button {
+    flex: 1;
+    width: 50%;
+    box-sizing: border-box;
+}
 </style>
 
 
@@ -349,21 +360,29 @@ def index():
                 <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
             </div>
 
-            <h3>17業種</h3>
-            <button id="toggle-sector" style="
-                width:100%; padding:10px; background:#2a2e39; color:white;
-                border:none; border-radius:6px; font-size:15px; margin-bottom:10px;">
-                業種を選択 ▼
-            </button>
 
-            <div id="sector-box-wrapper" style="display:none;">
-                <div class="filter-group">
-                    <label><input type="checkbox" id="sector-all"> 全業種</label>
-                </div>
-                <div class="filter-group" id="sector-box"></div>
-            </div>
+<h3>17業種</h3>
 
-            <button id="start-button">描画開始</button>
+<div id="top-buttons">
+    <button id="toggle-sector" style="
+        width:100%; padding:10px; background:#2a2e39; color:white;
+        border:none; border-radius:6px; font-size:15px;">
+        業種を選択 ▼
+    </button>
+
+    <button id="start-button">描画開始</button>
+</div>
+
+<div id="sector-box-wrapper" style="display:none;">
+    <div class="filter-group">
+        <label><input type="checkbox" id="sector-all"> 全業種</label>
+    </div>
+    <div class="filter-group" id="sector-box"></div>
+</div>
+
+
+
+
         </div>
 
         <div id="content">
