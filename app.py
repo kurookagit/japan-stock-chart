@@ -492,69 +492,77 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalSame) {
-                    currentInterval = nextInterval;
 
-                    document.getElementById("app").innerHTML = "";
-                    document.getElementById("loading").innerText = "読み込み中...";
-                    page = 1;
-                    globalIndex = 0;
-                    loadNextPage();
-                } else {
-                    currentInterval = nextInterval;
+if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged) {
+    // ★ 設定変更あり → 最初から描画
+    currentInterval = nextInterval;
 
-                    const containers = document.querySelectorAll(".chart-container");
+    document.getElementById("app").innerHTML = "";
+    document.getElementById("loading").innerText = "読み込み中...";
+    page = 1;
+    globalIndex = 0;
+    loadNextPage();
 
-                    containers.forEach(container => {
-                        const titleElement = container.querySelector(".chart-title");
-                        const area = container.querySelector(".chart-area");
+} else if (currentInterval !== nextInterval) {
+    // ★ 足種だけ変更 → 既存カードを更新
+    currentInterval = nextInterval;
 
-                        const titleText = titleElement.innerText.trim();
-                        const tickerCode = titleText.split(" ")[0];
+    const containers = document.querySelectorAll(".chart-container");
 
-                        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
+    containers.forEach(container => {
+        const titleElement = container.querySelector(".chart-title");
+        const area = container.querySelector(".chart-area");
 
-                        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
-                            .then(res => res.json())
-                            .then(json => {
-                                if (!json.data) {
-                                    area.innerText = "データ取得エラー";
-                                    return;
-                                }
-                                area.innerHTML = "";
+        const titleText = titleElement.innerText.trim();
+        const tickerCode = titleText.split(" ")[0];
 
-                                const chart = LightweightCharts.createChart(area, {
-                                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-                                    handleScale: false,
-                                    handleScroll: false,
-                                    wheel: { scroll: false, pinch: false },
-                                    touch: { mode: 'none' },
-                                    drag: { scroll: false }
-                                });
+        area.innerHTML = "<div style='padding:20px; color:#aaa; font-size:12px;'>足種更新中...</div>";
 
-                                const series = chart.addCandlestickSeries({
-                                    upColor: '#26a69a', downColor: '#ef5350',
-                                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
-                                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-                                });
-
-                                series.setData(json.data);
-                                chart.timeScale().fitContent();
-
-                                function resizeChart() {
-                                    const h = window.innerHeight * 0.23;
-                                    chart.resize(area.clientWidth, h);
-                                }
-                                window.addEventListener('resize', resizeChart);
-                                resizeChart();
-                            })
-                            .catch(() => {
-                                area.innerText = "データ取得エラー";
-                            });
-                    });
+        fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
+            .then(res => res.json())
+            .then(json => {
+                if (!json.data) {
+                    area.innerText = "データ取得エラー";
+                    return;
                 }
+                area.innerHTML = "";
+
+                const chart = LightweightCharts.createChart(area, {
+                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
+                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+                    handleScale: false,
+                    handleScroll: false,
+                    wheel: { scroll: false, pinch: false },
+                    touch: { mode: 'none' },
+                    drag: { scroll: false }
+                });
+
+                const series = chart.addCandlestickSeries({
+                    upColor: '#26a69a', downColor: '#ef5350',
+                    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+                    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+                });
+
+                series.setData(json.data);
+                chart.timeScale().fitContent();
+
+                function resizeChart() {
+                    const h = window.innerHeight * 0.23;
+                    chart.resize(area.clientWidth, h);
+                }
+                window.addEventListener('resize', resizeChart);
+                resizeChart();
+            })
+            .catch(() => {
+                area.innerText = "データ取得エラー";
             });
+    });
+
+} else {
+    // ★ 何も変わっていない → 何もしない
+}
+
+
 
             async function loadNextPage() {
                 if (!drawing) return;
