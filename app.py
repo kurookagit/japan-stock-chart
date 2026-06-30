@@ -216,6 +216,13 @@ def index():
         cursor: pointer;
     }
 
+
+/* ★ 描画開始だけ緑色に戻す */
+#start-button {
+    background: #26a69a;
+}
+
+
     /* gap を使わず space-between に変更 */
     #top-buttons {
         display: flex;
