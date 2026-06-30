@@ -316,7 +316,7 @@ def index():
     }
 #top-buttons {
     display: flex;
-    gap: 10px;
+    gap: 6px;
 }
 
 #toggle-sector,
@@ -373,7 +373,7 @@ def index():
 
 <div id="top-buttons">
     <button id="toggle-sector" style="
-        width:100%; background:#2a2e39; color:white;
+        background:#2a2e39; color:white;
         border:none; border-radius:6px;">
         業種を選択 ▼
     </button>
