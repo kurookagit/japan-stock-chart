@@ -322,7 +322,6 @@ def index():
 #toggle-sector,
 #start-button {
     flex: 1;
-    width: 50%;
     box-sizing: border-box;
 }
 #toggle-sector,
