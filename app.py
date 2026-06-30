@@ -325,6 +325,15 @@ def index():
     width: 50%;
     box-sizing: border-box;
 }
+#toggle-sector,
+#start-button {
+    padding: 12px;          /* ← 高さを揃えるために統一 */
+    font-size: 14px;        /* ← 両方同じにする */
+    height: 48px;           /* ← 完全に高さを固定（ズレ防止） */
+    display: flex;          /* ← 文字の縦位置を揃える */
+    align-items: center;    /* ← 文字を中央に揃える */
+    justify-content: center;
+}
 </style>
 
 
