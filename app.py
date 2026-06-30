@@ -316,19 +316,23 @@ def index():
     }
 #top-buttons {
     display: flex;
-    gap: 6px;   /* ← 右端が切れないように調整 */
+    gap: 10px;
 }
 
 #toggle-sector,
 #start-button {
     flex: 1;
-    padding: 10px;
-    font-size: 14px;   /* ← 「17業種」と同じ */
-    height: 46px;      /* ← 完全に高さを揃える */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 50%;
     box-sizing: border-box;
+}
+#toggle-sector,
+#start-button {
+    padding: 12px;          /* ← 高さを揃えるために統一 */
+    font-size: 14px;        /* ← 両方同じにする */
+    height: 48px;           /* ← 完全に高さを固定（ズレ防止） */
+    display: flex;          /* ← 文字の縦位置を揃える */
+    align-items: center;    /* ← 文字を中央に揃える */
+    justify-content: center;
 }
 </style>
 
@@ -369,19 +373,11 @@ def index():
 <h3>17業種</h3>
 
 <div id="top-buttons">
-<button id="toggle-sector">
-    業種を選択 ▼
-</button>
-
-#toggle-sector,
-#start-button {
-    padding: 10px;          /* ← 両方同じにする */
-    font-size: 14px;        /* ← 「17業種」と同じサイズ */
-    height: 46px;           /* ← 完全に高さを揃える */
-    display: flex;          /* ← 文字の縦位置を揃える */
-    align-items: center;    /* ← 中央揃え */
-    justify-content: center;
-}
+    <button id="toggle-sector" style="
+        width:100%; padding:10px; background:#2a2e39; color:white;
+        border:none; border-radius:6px; font-size:15px;">
+        業種を選択 ▼
+    </button>
 
     <button id="start-button">描画開始</button>
 </div>
