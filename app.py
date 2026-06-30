@@ -374,8 +374,8 @@ def index():
 
 <div id="top-buttons">
     <button id="toggle-sector" style="
-        width:100%; padding:10px; background:#2a2e39; color:white;
-        border:none; border-radius:6px; font-size:15px;">
+        width:100%; background:#2a2e39; color:white;
+        border:none; border-radius:6px;">
         業種を選択 ▼
     </button>
 
