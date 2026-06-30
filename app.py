@@ -116,14 +116,9 @@ def fetch_real_data(ticker, interval="1d", period=None):
     df = df.reset_index()
     df.columns = df.columns.get_level_values(0)
 
-    print("=== DEBUG WEEKLY DATA ===")
-    print(df.head())
-    print(df.columns)
-
-
     ohlc = []
     for _, row in df.iterrows():
-        date_col = "Date" if "Date" in df.columns else "Datetime"
+        date_col = "Date" if "Date" in row else "Datetime"
 
         ohlc.append({
             "time": row[date_col].strftime("%Y-%m-%d"),
@@ -172,7 +167,7 @@ def index():
 
     #filter-bar h3 {
         margin: 5px 0;
-        font-size: 14px;
+        font-size: 14px;   /* ← 市場区分の基準サイズ */
     }
 
     .filter-group {
@@ -182,36 +177,31 @@ def index():
         margin-bottom: 10px;
     }
 
-    /* ★ 市場区分と日経225を横並びにする行（強制左寄せ） */
-#market-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-start;   /* 左寄せ */
-}
-
-    /* 市場区分のラベル（プライム・スタンダード・グロース） */
-    .market-label,
-    .filter-group label {
-        font-size: 14px;
+    /* 市場区分と日経225を横並びにする行 */
+    #market-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;          /* ← スマホで折り返し可能 */
+        justify-content: flex-start; /* ← 左寄せ（重要） */
     }
 
-/* ★ 日経225ボタンの完全修正版 */
-#nikkei225-box {
-    font-size: 14px;
-    margin-left: 8px;        /* ← 少し右へ寄せる（調整ポイント） */
-    padding: 0;              /* ← 縦位置ズレ防止（重要） */
-    background: none;        /* ← 灰色背景を完全削除 */
-    border: none;            /* ← 枠を完全削除 */
-    white-space: nowrap;
-    display: flex;           /* ← 縦位置を揃えるために必要 */
-    align-items: center;     /* ← プライム等と高さを完全一致 */
-}
+    /* 市場区分のチェックボックスラベル */
+    .market-label,
+    .filter-group label {
+        font-size: 14px;          /* ← 市場区分と統一 */
+    }
 
-    /* 日足・週足・月足の文字サイズ統一 */
-    #interval-row label {
-        font-size: 14px;
+    /* 日経225ボタン */
+    #nikkei225-box {
+        font-size: 14px;          /* ← 市場区分と統一 */
+        margin-left: 4px;         /* ← グロースのすぐ右に寄せる */
+        padding: 3px 6px;
+        border: 1px solid #4da3ff;
+        border-radius: 6px;
+        background-color: #2a2e39;
+        cursor: pointer;
+        white-space: nowrap;
     }
 
     #start-button {
@@ -310,16 +300,16 @@ def index():
     @media (max-width: 480px) {
         .market-label,
         .filter-group label,
-        #nikkei225-box,
-        #interval-row label {
-            font-size: 12px;
+        #nikkei225-box {
+            font-size: 12px;      /* ← スマホでは少し小さく */
         }
 
         #market-row {
-            gap: 6px;
+            gap: 6px;             /* ← スマホでは間隔を少し狭く */
         }
     }
 </style>
+
 
 
     </head>
@@ -330,18 +320,17 @@ def index():
             <div id="site-title">東証チャートの縦流し</div>
 
             <h3>市場区分（複数選択可）</h3>
-<div id="market-row">
-    <div class="filter-group">
-        <label><input type="checkbox" class="market" value="プライム"> プライム</label>
-        <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
-        <label><input type="checkbox" class="market" value="グロース"> グロース</label>
-    </div>
+            <div id="market-row">
+                <div class="filter-group" style="flex: 1;">
+                    <label><input type="checkbox" class="market" value="プライム"> プライム</label>
+                    <label><input type="checkbox" class="market" value="スタンダード"> スタンダード</label>
+                    <label><input type="checkbox" class="market" value="グロース"> グロース</label>
+                </div>
 
-    <!-- ★ ここを filter-group と同じ構造にする -->
-    <div class="filter-group" id="nikkei225-box">
-        <label><input type="checkbox" id="nikkei225"> 日経225</label>
-    </div>
-</div>
+                <div id="nikkei225-box">
+                    <label><input type="checkbox" id="nikkei225"> 日経225</label>
+                </div>
+            </div>
 
             <h3>足種（1つだけ）</h3>
             <div id="interval-row">
@@ -487,7 +476,7 @@ def index():
                 const isMarketChanged = JSON.stringify(selectedMarkets) !== JSON.stringify(nextMarkets);
                 const isSectorChanged = JSON.stringify(selectedSectors) !== JSON.stringify(nextSectors);
                 const isNikkeiChanged = selectedNikkei225 !== nextNikkei225;
-                const isIntervalChanged = currentInterval !== nextInterval;
+                const isIntervalSame = currentInterval === nextInterval;
                 const isInitial = document.getElementById("app").innerHTML === "";
 
                 selectedMarkets = nextMarkets;
@@ -497,7 +486,7 @@ def index():
                 document.getElementById("sector-box-wrapper").style.display = "none";
                 document.getElementById("toggle-sector").innerText = "業種を選択 ▼";
 
-                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalChanged) {
+                if (isInitial || isMarketChanged || isSectorChanged || isNikkeiChanged || isIntervalSame) {
                     currentInterval = nextInterval;
 
                     document.getElementById("app").innerHTML = "";
@@ -506,7 +495,6 @@ def index():
                     globalIndex = 0;
                     loadNextPage();
                 } else {
-		    console.log("ENTER ELSE (足種更新モード)");
                     currentInterval = nextInterval;
 
                     const containers = document.querySelectorAll(".chart-container");
@@ -523,20 +511,7 @@ def index():
                         fetch(`/api/chart?ticker=${tickerCode}&interval=${currentInterval}`)
                             .then(res => res.json())
                             .then(json => {
-                                console.log(json);   
-                                console.log("WEEKLY DATA:", json.data);
-
-		    console.log("FLAGS:", {
-		        isInitial,
-		        isMarketChanged,
-		        isSectorChanged,
-		        isNikkeiChanged,
-		        isIntervalChanged
-		    });
-
-
-
-                                if (!json.data || json.data.length === 0) {
+                                if (!json.data) {
                                     area.innerText = "データ取得エラー";
                                     return;
                                 }
@@ -610,43 +585,43 @@ def index():
                 loading = false;
             }
 
-//            function createAdBlock() {
-//                const app = document.getElementById('app');
-//
-//                const ads = [
-//                   `
-//                    <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
-//                    <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
-//                    <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
-//                    `,
-//                    `
-//                    <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
-//                    `
-//                ];
-//
-//                const randomAd = ads[Math.floor(Math.random() * ads.length)];
-//
-//                const ad = document.createElement('div');
-//                ad.className = 'ad-banner';
-//                ad.innerHTML = randomAd;
-//
-//                app.appendChild(ad);
-//            }
+            function createAdBlock() {
+                const app = document.getElementById('app');
+
+                const ads = [
+                    `
+                    <a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>
+                    <a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>
+                    <a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>
+                    `,
+                    `
+                    <a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>
+                    `
+                ];
+
+                const randomAd = ads[Math.floor(Math.random() * ads.length)];
+
+                const ad = document.createElement('div');
+                ad.className = 'ad-banner';
+                ad.innerHTML = randomAd;
+
+                app.appendChild(ad);
+            }
 
             async function createChartCard(code, name) {
                 const app = document.getElementById('app');
