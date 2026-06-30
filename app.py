@@ -327,7 +327,7 @@ def index():
 }
 #toggle-sector,
 #start-button {
-    padding: 12px;          /* ← 高さを揃えるために統一 */
+    padding: 10px;          /* ← 高さを揃えるために統一 */
     font-size: 14px;        /* ← 両方同じにする */
     height: 48px;           /* ← 完全に高さを固定（ズレ防止） */
     display: flex;          /* ← 文字の縦位置を揃える */
