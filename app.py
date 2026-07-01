@@ -148,6 +148,14 @@ def index():
         font-family: sans-serif;
     }
 
+#app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 横に2列 */
+    gap: 10px;                        /* チャート同士の余白 */
+    width: 100%;
+}
+
+
     /* ★ fixed → sticky に変更 */
     #filter-bar {
         position: sticky;
