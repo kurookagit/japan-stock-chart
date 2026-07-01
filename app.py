@@ -293,13 +293,13 @@ def index():
         margin-right: 10px;
     }
 
-    #interval-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        margin-top: 5px;
-    }
+#interval-row {
+    display: flex;
+    justify-content: flex-start;   /* ← これが重要 */
+    align-items: center;
+    gap: 10px;                      /* ← ボタン同士の間隔 */
+    margin-top: 5px;
+}
 
     #pc-link {
         background: #4da3ff;
