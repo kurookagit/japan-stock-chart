@@ -160,11 +160,7 @@ def index():
         border-bottom: 1px solid #333;
     }
 
-<div id="notice-box" style="display:none; background:#1c2030; padding:10px; border-radius:6px; margin-top:10px; color:#d1d4dc;">
-    <p>・時間によっては描画開始を押しても「データ取得エラー」になる可能性があります。</p>
-    <p>・本サイトのチャートはリアルタイムデータではありません。デイトレードに使用することを想定していません。スイングトレード、中長期投資の判断にご使用ください。</p>
-    <p>・データ異常等で正しくチャートが表示されない可能性があります。投資の最終判断には証券会社等の信頼できるデータをご使用ください。</p>
-</div>
+
 
 
     #filter-bar h3 {
@@ -396,6 +392,13 @@ def index():
         </div>
 
     </div>
+
+<div id="notice-box" style="display:none; background:#1c2030; padding:10px; border-radius:6px; margin-top:10px; color:#d1d4dc;">
+    <p>・時間によっては描画開始を押しても「データ取得エラー」になる可能性があります。</p>
+    <p>・本サイトのチャートはリアルタイムデータではありません。デイトレードに使用することを想定していません。スイングトレード、中長期投資の判断にご使用ください。</p>
+    <p>・データ異常等で正しくチャートが表示されない可能性があります。投資の最終判断には証券会社等の信頼できるデータをご使用ください。</p>
+</div>
+
 
     <div id="content">
         <div id="app"></div>
