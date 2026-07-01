@@ -689,7 +689,8 @@ document.getElementById("notice-link").addEventListener("click", () => {
             ad.innerHTML = randomAd;
 
 	    // ★ チャートと同じ高さにする
-	    const h = window.innerHeight * 0.23;
+	    const h = window.innerHeight * 0.25;
+            const marginRight = 80;  // ★ 右端の余白（2cm相当）
 	    ad.style.height = `${h}px`;
 
             app.appendChild(ad);
