@@ -140,6 +140,12 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
+.ad-banner img {
+    height: 100%;
+    width: auto;
+    object-fit: cover;
+}
+
     body {
         margin: 0;
         padding: 0;
@@ -269,17 +275,17 @@ def index():
         cursor: pointer;
     }
 
-    .ad-banner {
-        width: 100%;
-        background: #2a2e39;
-        border-radius: 6px;
-        margin: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #aaa;
-        font-size: 14px;
-    }
+.ad-banner {
+    width: 100%;
+    background: #2a2e39;
+    border-radius: 6px;
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #aaa;
+    font-size: 14px;
+}
 
     #loading {
         text-align: center;
