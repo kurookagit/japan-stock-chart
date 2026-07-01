@@ -648,15 +648,21 @@ document.getElementById("notice-link").addEventListener("click", () => {
                 return;
             }
 
-            for (const stock of json.data) {
-                globalIndex++;
+for (const stock of json.data) {
 
-                if (globalIndex % 10 === 0) {
-                    createAdBlock();
-                }
+    // ★ 最初のページだけチャートを1個減らす
+    if (page === 1 && globalIndex === 9) {
+        break;   // ← ここでページ1のチャートを9個で止める
+    }
 
-                await createChartCard(stock.code, stock.name);
-            }
+    globalIndex++;
+
+    if (globalIndex % 10 === 0) {
+        createAdBlock();
+    }
+
+    await createChartCard(stock.code, stock.name);
+}
 
             page++;
             loading = false;
