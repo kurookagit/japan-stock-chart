@@ -612,7 +612,7 @@ document.getElementById("notice-link").addEventListener("click", () => {
 
                             function resizeChart() {
                                 const h = window.innerHeight * 0.23;
-                                chart.resize(area.clientWidth, h);
+                                chart.resize(window.innerWidth / 2, h);
                             }
                             window.addEventListener('resize', resizeChart);
                             resizeChart();
@@ -764,7 +764,7 @@ const chart = LightweightCharts.createChart(area, {
 
                 function resizeChart() {
                     const h = window.innerHeight * 0.23;
-                    chart.resize(area.clientWidth, h);
+                    chart.resize(window.innerWidth / 2, h);
                 }
                 window.addEventListener('resize', resizeChart);
                 resizeChart();
