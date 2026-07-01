@@ -612,7 +612,8 @@ document.getElementById("notice-link").addEventListener("click", () => {
 
                             function resizeChart() {
                                 const h = window.innerHeight * 0.23;
-                                chart.resize(window.innerWidth / 2, h);
+				const marginRight = 50;  // ★ 右端の余白（2cm相当）
+				chart.resize((window.innerWidth - marginRight) / 2, h);
                             }
                             window.addEventListener('resize', resizeChart);
                             resizeChart();
@@ -764,7 +765,8 @@ const chart = LightweightCharts.createChart(area, {
 
                 function resizeChart() {
                     const h = window.innerHeight * 0.23;
-                    chart.resize(window.innerWidth / 2, h);
+                    const marginRight = 50;  // ★ 右端の余白（2cm相当）
+		    chart.resize((window.innerWidth - marginRight) / 2, h);
                 }
                 window.addEventListener('resize', resizeChart);
                 resizeChart();
