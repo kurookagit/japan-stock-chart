@@ -140,15 +140,6 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
-
-#ad-area {
-    display: grid;
-    grid-template-columns: 1fr 1fr;   /* 横に2列 */
-    gap: 10px;
-    width: 100%;
-    margin-top: 20px;
-}
-
     body {
         margin: 0;
         padding: 0;
@@ -163,11 +154,6 @@ def index():
     gap: 10px;                        /* チャート同士の余白 */
     width: 100%;
 }
-
-<div id="app"></div>
-
-<!-- ★ 広告専用の2列グリッド -->
-<div id="ad-area"></div>
 
 
     /* ★ fixed → sticky に変更 */
@@ -439,26 +425,6 @@ def index():
     </div>
 
     <script>
-	let chartCount = 0;
-
-function addAds() {
-    const adArea = document.getElementById('ad-area');
-
-    for (let i = 0; i < 2; i++) {
-        const adBox = document.createElement('div');
-        adBox.className = 'ad-container';
-
-        // ★ ここにあなたのA8広告コードを入れる
-        adBox.innerHTML = `
-            <div style="background:#2a2e39; padding:10px; border-radius:6px; text-align:center;">
-                広告枠
-            </div>
-        `;
-
-        adArea.appendChild(adBox);
-    }
-}
-
         let page = 1;
         let loading = false;
         let globalIndex = 0;
@@ -696,27 +662,39 @@ document.getElementById("notice-link").addEventListener("click", () => {
             loading = false;
         }
 
-        function createAdBlock() {
-            const app = document.getElementById('app');
 
-            const ads = [
-                `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
-                `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
-                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a><a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
-                `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
-                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a><a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
-                `<a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>`,
-                `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
-            ];
+function createAdBlock() {
+    const app = document.getElementById('app');
 
-            const randomAd = ads[Math.floor(Math.random() * ads.length)];
+    const ads = [
+        `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
+        `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
+        `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>`,
+        `<a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
+        `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
+        `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>`,
+        `<a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
+        `<a href="あなたのA8リンク8"><img src="あなたの画像URL8"></a>`,
+        `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
+    ];
 
-            const ad = document.createElement('div');
-            ad.className = 'ad-banner';
-            ad.innerHTML = randomAd;
+    // ★ ランダム広告を2つ選ぶ
+    const ad1 = ads[Math.floor(Math.random() * ads.length)];
+    const ad2 = ads[Math.floor(Math.random() * ads.length)];
 
-            app.appendChild(ad);
-        }
+    // ★ 2つの広告ブロックを追加
+    const adBox1 = document.createElement('div');
+    adBox1.className = 'ad-banner';
+    adBox1.innerHTML = ad1;
+
+    const adBox2 = document.createElement('div');
+    adBox2.className = 'ad-banner';
+    adBox2.innerHTML = ad2;
+
+    app.appendChild(adBox1);
+    app.appendChild(adBox2);
+}
+
 
         async function createChartCard(code, name) {
             const app = document.getElementById('app');
@@ -734,18 +712,6 @@ document.getElementById("notice-link").addEventListener("click", () => {
             box.appendChild(area);
 
             app.appendChild(box);
-
-chartCount++;
-if (chartCount % 10 === 0) {
-    addAds();   // ★ 10個ごとに広告2個追加
-}
-
-
-	    chartCount++;
-
-	    if (chartCount % 10 === 0) {
-	        addAds();   // ★ 10個ごとに広告2個追加
-	    }
 
             area.addEventListener("click", () => {
                 window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
