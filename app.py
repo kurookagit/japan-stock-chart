@@ -235,10 +235,12 @@ def index():
 
 
     /* gap を使わず space-between に変更 */
-    #top-buttons {
-        display: flex;
-        justify-content: space-between;
-    }
+#top-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 横に2列 */
+    gap: 10px;
+    margin-right: 50px;               /* ★ 右端2cmくらい使わない */
+}
 
     #content {
         padding-top: 340px;
@@ -389,7 +391,7 @@ def index():
 
     <div id="interval-right">
         <a id="notice-link" class="pc-like-button">注意事項▼</a>
-        <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
+        <a id="pc-link" href="https://あなたのPC版URL">スマホ画面</a>
     </div>
 </div>
 
