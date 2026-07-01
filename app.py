@@ -402,9 +402,10 @@ def index():
     </div>
 
 <div id="notice-box" style="display:none; background:#1c2030; padding:10px; border-radius:6px; margin-top:10px; color:#d1d4dc;">
-    <p>・時間によっては描画開始を押しても「データ取得エラー」になる可能性があります。</p>
+    <p>・時間帯によっては描画開始を押しても「データ取得エラー」になる可能性があります。</p>
     <p>・本サイトのチャートはリアルタイムデータではありません。デイトレードに使用することを想定していません。スイングトレード、中長期投資の判断にご使用ください。</p>
     <p>・データ異常等で正しくチャートが表示されない可能性があります。投資の最終判断には証券会社等の信頼できるデータをご使用ください。</p>
+    <p>・記載の注意事項を承諾の上ご使用ください。</p>
 </div>
 
 
@@ -717,15 +718,32 @@ document.getElementById("notice-link").addEventListener("click", () => {
                     return;
                 }
 
-                const chart = LightweightCharts.createChart(area, {
-                    layout: { backgroundColor: '#1c2030', textColor: '#d1d4dc' },
-                    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-                    handleScale: false,
-                    handleScroll: false,
-                    wheel: { scroll: false, pinch: false },
-                    touch: { mode: 'none' },
-                    drag: { scroll: false }
-                });
+const chart = LightweightCharts.createChart(area, {
+    layout: { backgroundColor: '#1c2030', textColor: '#333333' },  // ★ 文字色を濃く
+
+    grid: {
+        vertLines: { color: '#2a2e39' },
+        horzLines: { color: '#2a2e39' }
+    },
+
+    // ★ 横軸の文字色
+    timeScale: {
+        borderColor: '#2a2e39',
+        textColor: '#333333'
+    },
+
+    // ★ 縦軸の文字色
+    priceScale: {
+        borderColor: '#2a2e39',
+        textColor: '#333333'
+    },
+
+    handleScale: false,
+    handleScroll: false,
+    wheel: { scroll: false, pinch: false },
+    touch: { mode: 'none' },
+    drag: { scroll: false }
+});
 
                 const series = chart.addCandlestickSeries({
                     upColor: '#26a69a', downColor: '#ef5350',
