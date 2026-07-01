@@ -148,14 +148,6 @@ def index():
         font-family: sans-serif;
     }
 
-#app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;   /* 横に2列 */
-    gap: 10px;                        /* チャート同士の余白 */
-    width: 100%;
-}
-
-
     /* ★ fixed → sticky に変更 */
     #filter-bar {
         position: sticky;
@@ -239,7 +231,7 @@ def index():
     display: grid;
     grid-template-columns: 1fr 1fr;   /* 横に2列 */
     gap: 10px;
-    margin-right: 30px;               /* ★ 右端2cmくらい使わない */
+    margin-right: 20px;               /* ★ 右端2cmくらい使わない */
 }
 
     #content {
@@ -391,7 +383,7 @@ def index():
 
     <div id="interval-right">
         <a id="notice-link" class="pc-like-button">注意事項▼</a>
-        <a id="pc-link" href="https://あなたのPC版URL">スマホ画面</a>
+        <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
     </div>
 </div>
 
@@ -614,8 +606,7 @@ document.getElementById("notice-link").addEventListener("click", () => {
 
                             function resizeChart() {
                                 const h = window.innerHeight * 0.23;
-				const marginRight = 80;  // ★ 右端の余白（2cm相当）
-				chart.resize((window.innerWidth - marginRight) / 2, h);
+                                chart.resize(area.clientWidth, h);
                             }
                             window.addEventListener('resize', resizeChart);
                             resizeChart();
@@ -767,8 +758,7 @@ const chart = LightweightCharts.createChart(area, {
 
                 function resizeChart() {
                     const h = window.innerHeight * 0.23;
-                    const marginRight = 80;  // ★ 右端の余白（2cm相当）
-		    chart.resize((window.innerWidth - marginRight) / 2, h);
+                    chart.resize(area.clientWidth, h);
                 }
                 window.addEventListener('resize', resizeChart);
                 resizeChart();
