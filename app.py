@@ -271,7 +271,6 @@ def index():
 
     .ad-banner {
         width: 100%;
-        height: 80px;
         background: #2a2e39;
         border-radius: 6px;
         margin: 10px;
@@ -668,10 +667,12 @@ document.getElementById("notice-link").addEventListener("click", () => {
             const ads = [
                 `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
                 `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
-                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a><a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
+                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>`,
+		`<a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
                 `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
-                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a><a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
-                `<a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>`,
+                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>`,
+		`<a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
+                `<a href="あなたのA8リンク8"><img src="あなたの画像URL8"></a>`,
                 `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
             ];
 
@@ -680,6 +681,10 @@ document.getElementById("notice-link").addEventListener("click", () => {
             const ad = document.createElement('div');
             ad.className = 'ad-banner';
             ad.innerHTML = randomAd;
+
+	    // ★ チャートと同じ高さにする
+	    const h = window.innerHeight * 0.23;
+	    ad.style.height = `${h}px`;
 
             app.appendChild(ad);
         }
