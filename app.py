@@ -295,10 +295,15 @@ def index():
 
 #interval-row {
     display: flex;
-    justify-content: flex-start;   /* ← これが重要 */
+    justify-content: space-between;   /* ← 左右に分かれる */
     align-items: center;
-    gap: 10px;                      /* ← ボタン同士の間隔 */
-    margin-top: 5px;
+}
+
+#interval-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 8px;   /* ← PC画面が右端で切れないように調整 */
 }
 
     #pc-link {
@@ -366,16 +371,19 @@ def index():
         </div>
 
         <h3>足種（1つだけ）</h3>
-        <div id="interval-row">
-            <div class="interval-options">
-                <label><input type="radio" name="interval" value="1d" checked> 日足</label>
-                <label><input type="radio" name="interval" value="1wk"> 週足</label>
-                <label><input type="radio" name="interval" value="1mo"> 月足</label>
-            </div>
 
-	    <a id="notice-link" class="pc-like-button">注意事項▼</a>
-            <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
-        </div>
+<div id="interval-row">
+    <div class="interval-options">
+        <label><input type="radio" name="interval" value="1d" checked> 日足</label>
+        <label><input type="radio" name="interval" value="1wk"> 週足</label>
+        <label><input type="radio" name="interval" value="1mo"> 月足</label>
+    </div>
+
+    <div id="interval-right">
+        <a id="notice-link" class="pc-like-button">注意事項▼</a>
+        <a id="pc-link" href="https://あなたのPC版URL">PC画面</a>
+    </div>
+</div>
 
         <h3>17業種</h3>
 
