@@ -239,7 +239,7 @@ def index():
     display: grid;
     grid-template-columns: 1fr 1fr;   /* 横に2列 */
     gap: 10px;
-    margin-right: 50px;               /* ★ 右端2cmくらい使わない */
+    margin-right: 30px;               /* ★ 右端2cmくらい使わない */
 }
 
     #content {
