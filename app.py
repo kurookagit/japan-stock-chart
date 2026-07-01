@@ -140,6 +140,15 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
+
+#ad-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 横に2列 */
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
     body {
         margin: 0;
         padding: 0;
@@ -154,6 +163,11 @@ def index():
     gap: 10px;                        /* チャート同士の余白 */
     width: 100%;
 }
+
+<div id="app"></div>
+
+<!-- ★ 広告専用の2列グリッド -->
+<div id="ad-area"></div>
 
 
     /* ★ fixed → sticky に変更 */
@@ -425,6 +439,26 @@ def index():
     </div>
 
     <script>
+	let chartCount = 0;
+
+function addAds() {
+    const adArea = document.getElementById('ad-area');
+
+    for (let i = 0; i < 2; i++) {
+        const adBox = document.createElement('div');
+        adBox.className = 'ad-container';
+
+        // ★ ここにあなたのA8広告コードを入れる
+        adBox.innerHTML = `
+            <div style="background:#2a2e39; padding:10px; border-radius:6px; text-align:center;">
+                広告枠
+            </div>
+        `;
+
+        adArea.appendChild(adBox);
+    }
+}
+
         let page = 1;
         let loading = false;
         let globalIndex = 0;
@@ -700,6 +734,18 @@ document.getElementById("notice-link").addEventListener("click", () => {
             box.appendChild(area);
 
             app.appendChild(box);
+
+chartCount++;
+if (chartCount % 10 === 0) {
+    addAds();   // ★ 10個ごとに広告2個追加
+}
+
+
+	    chartCount++;
+
+	    if (chartCount % 10 === 0) {
+	        addAds();   // ★ 10個ごとに広告2個追加
+	    }
 
             area.addEventListener("click", () => {
                 window.open(`https://finance.yahoo.co.jp/quote/${code}.T`, "_blank");
