@@ -648,59 +648,41 @@ document.getElementById("notice-link").addEventListener("click", () => {
                 return;
             }
 
-for (const stock of json.data) {
+            for (const stock of json.data) {
+                globalIndex++;
 
-    // ★ 最初のページだけチャートを1個減らす
-    if (page === 1 && globalIndex === 9) {
-        break;   // ← ここでページ1のチャートを9個で止める
-    }
+                if (globalIndex % 10 === 0) {
+                    createAdBlock();
+                }
 
-    globalIndex++;
-
-    if (globalIndex % 10 === 0) {
-        createAdBlock();
-    }
-
-    await createChartCard(stock.code, stock.name);
-}
+                await createChartCard(stock.code, stock.name);
+            }
 
             page++;
             loading = false;
         }
 
+        function createAdBlock() {
+            const app = document.getElementById('app');
 
-function createAdBlock() {
-    const app = document.getElementById('app');
+            const ads = [
+                `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
+                `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
+                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a><a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
+                `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
+                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a><a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
+                `<a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>`,
+                `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
+            ];
 
-    const ads = [
-        `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
-        `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
-        `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>`,
-        `<a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
-        `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
-        `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>`,
-        `<a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
-        `<a href="あなたのA8リンク8"><img src="あなたの画像URL8"></a>`,
-        `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
-    ];
+            const randomAd = ads[Math.floor(Math.random() * ads.length)];
 
-    // ★ ランダム広告を2つ選ぶ
-    const ad1 = ads[Math.floor(Math.random() * ads.length)];
-    const ad2 = ads[Math.floor(Math.random() * ads.length)];
+            const ad = document.createElement('div');
+            ad.className = 'ad-banner';
+            ad.innerHTML = randomAd;
 
-    // ★ 2つの広告ブロックを追加
-    const adBox1 = document.createElement('div');
-    adBox1.className = 'ad-banner';
-    adBox1.innerHTML = ad1;
-
-    const adBox2 = document.createElement('div');
-    adBox2.className = 'ad-banner';
-    adBox2.innerHTML = ad2;
-
-    app.appendChild(adBox1);
-    app.appendChild(adBox2);
-}
-
+            app.appendChild(ad);
+        }
 
         async function createChartCard(code, name) {
             const app = document.getElementById('app');
