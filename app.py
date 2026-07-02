@@ -158,6 +158,7 @@ def index():
         background: #1c2030;
         padding: 10px;
         border-bottom: 1px solid #333;
+	overflow-x: hidden;
     }
 
 
