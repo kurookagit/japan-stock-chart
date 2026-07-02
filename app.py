@@ -140,12 +140,6 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
-.ad-banner img {
-    height: 100%;
-    width: auto;
-    object-fit: cover;
-}
-
     body {
         margin: 0;
         padding: 0;
@@ -153,14 +147,6 @@ def index():
         color: #d1d4dc;
         font-family: sans-serif;
     }
-
-#app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;   /* 横に2列 */
-    gap: 10px;                        /* チャート同士の余白 */
-    width: 100%;
-}
-
 
     /* ★ fixed → sticky に変更 */
     #filter-bar {
@@ -275,17 +261,18 @@ def index():
         cursor: pointer;
     }
 
-.ad-banner {
-    width: 100%;
-    background: #2a2e39;
-    border-radius: 6px;
-    margin: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #aaa;
-    font-size: 14px;
-}
+    .ad-banner {
+        width: 100%;
+        height: 80px;
+        background: #2a2e39;
+        border-radius: 6px;
+        margin: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #aaa;
+        font-size: 14px;
+    }
 
     #loading {
         text-align: center;
@@ -396,7 +383,7 @@ def index():
 
     <div id="interval-right">
         <a id="notice-link" class="pc-like-button">注意事項▼</a>
-        <a id="pc-link" href="https://あなたのPC版URL">スマホ画面</a>
+        <a id="pc-link" href="https://japan-stock-chart-pc.onrender.com/">PC画面</a>
     </div>
 </div>
 
@@ -619,8 +606,7 @@ document.getElementById("notice-link").addEventListener("click", () => {
 
                             function resizeChart() {
                                 const h = window.innerHeight * 0.23;
-				const marginRight = 80;  // ★ 右端の余白（2cm相当）
-				chart.resize((window.innerWidth - marginRight) / 2, h);
+                                chart.resize(area.clientWidth, h);
                             }
                             window.addEventListener('resize', resizeChart);
                             resizeChart();
@@ -673,12 +659,10 @@ document.getElementById("notice-link").addEventListener("click", () => {
             const ads = [
                 `<a href="あなたのA8リンク1"><img src="あなたの画像URL1"></a>`,
                 `<a href="あなたのA8リンク2"><img src="あなたの画像URL2"></a>`,
-                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a>`,
-		`<a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
+                `<a href="あなたのA8リンク3"><img src="あなたの画像URL3"></a><a href="あなたのA8リンク4"><img src="あなたの画像URL4"></a>`,
                 `<a href="あなたのA8リンク5"><img src="あなたの画像URL5"></a>`,
-                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a>`,
-		`<a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
-                `<a href="あなたのA8リンク8"><img src="あなたの画像URL8"></a>`,
+                `<a href="あなたのA8リンク6"><img src="あなたの画像URL6"></a><a href="あなたのA8リンク7"><img src="あなたの画像URL7"></a>`,
+                `<a href="あなたのA8リンク2"><img src="あなたの画像URL8"></a>`,
                 `<a href="あなたのA8リンク9"><img src="あなたの画像URL9"></a>`
             ];
 
@@ -687,11 +671,6 @@ document.getElementById("notice-link").addEventListener("click", () => {
             const ad = document.createElement('div');
             ad.className = 'ad-banner';
             ad.innerHTML = randomAd;
-
-	    // ★ チャートと同じ高さにする
-	    const h = window.innerHeight * 0.25;
-            const marginRight = 80;  // ★ 右端の余白（2cm相当）
-	    ad.style.height = `${h}px`;
 
             app.appendChild(ad);
         }
@@ -779,8 +758,7 @@ const chart = LightweightCharts.createChart(area, {
 
                 function resizeChart() {
                     const h = window.innerHeight * 0.23;
-                    const marginRight = 80;  // ★ 右端の余白（2cm相当）
-		    chart.resize((window.innerWidth - marginRight) / 2, h);
+                    chart.resize(area.clientWidth, h);
                 }
                 window.addEventListener('resize', resizeChart);
                 resizeChart();
