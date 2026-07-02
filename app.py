@@ -140,6 +140,11 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
+
+html, body {
+    overflow-x: hidden;
+}
+
     body {
         margin: 0;
         padding: 0;
