@@ -141,10 +141,6 @@ def index():
 
 <style>
 
-html, body {
-    overflow-x: hidden;
-}
-
     body {
         margin: 0;
         padding: 0;
@@ -240,6 +236,7 @@ html, body {
 }
 
     #content {
+        overflow-x: hidden;   /* ← これだけで横スクロール完全禁止 */
         padding-top: 340px;
     }
 
