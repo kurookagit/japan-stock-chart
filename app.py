@@ -140,13 +140,6 @@ def index():
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
-
-html, body {
-    overflow-x: hidden;   /* 横ずれゼロ */
-    overflow-y: visible;  /* sticky が壊れない */
-}
-
-
     body {
         margin: 0;
         padding: 0;
@@ -161,7 +154,6 @@ html, body {
         top: 0;
         left: 0;
         width: 100%;
-        overflow-x: hidden;   /* 右 margin があっても安全 */
         z-index: 999;
         background: #1c2030;
         padding: 10px;
