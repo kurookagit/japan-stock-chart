@@ -232,7 +232,7 @@ def index():
     display: grid;
     grid-template-columns: 1fr 1fr;   /* 横に2列 */
     gap: 10px;
-    margin-right: 20px;               /* ★ 右端2cmくらい使わない */
+    padding-right: 20px;               /* ★ 右端2cmくらい使わない */
 }
 
     #content {
@@ -293,7 +293,7 @@ def index():
         font-size: 14px;
         font-weight: bold;
         z-index: 1000;
-        margin-right: 10px;
+        padding-right: 10px;
     }
 
 #interval-row {
@@ -306,7 +306,7 @@ def index():
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-right: 8px;   /* ← PC画面が右端で切れないように調整 */
+    padding-right: 8px;   /* ← PC画面が右端で切れないように調整 */
 }
 
     #pc-link {
@@ -317,7 +317,7 @@ def index():
         font-size: 14px;
         font-weight: bold;
         text-decoration: none;
-        margin-right: 10px;
+        padding-right: 10px;
     }
 
 .pc-like-button {
@@ -328,7 +328,7 @@ def index():
     font-size: 14px;
     font-weight: bold;
     text-decoration: none;
-    margin-right: 10px;
+    padding-right: 10px;
     cursor: pointer;
 }
 
