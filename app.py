@@ -29,18 +29,18 @@ def update_jpx_list():
     print("JPX銘柄一覧更新完了")
 
 
+
 def load_jpx_list():
     update_jpx_list()
 
     df = pd.read_excel(LOCAL_CSV)
 
-df = df.rename(columns={
-    "コード": "code",
-    "銘柄名": "name",
-    "市場・商品区分": "market",
-    "17業種区分": "sector17",
-    "指数採用区分": "index"
-})
+    df = df.rename(columns={
+        "コード": "code",
+        "銘柄名": "name",
+        "市場・商品区分": "market",
+        "17業種区分": "sector17"
+    })
 
     df["code"] = df["code"].astype(str).str.zfill(4)
     df["sector17"] = df["sector17"].astype(str).str.strip()
@@ -53,6 +53,8 @@ df = df.rename(columns={
     df = df.sort_values(by="code", ascending=True)
 
     return df[["code", "name", "market", "sector17"]]
+
+
 
 
 from bs4 import BeautifulSoup
