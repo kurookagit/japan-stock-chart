@@ -34,12 +34,13 @@ def load_jpx_list():
 
     df = pd.read_excel(LOCAL_CSV)
 
-    df = df.rename(columns={
-        "コード": "code",
-        "銘柄名": "name",
-        "市場・商品区分": "market",
-        "17業種区分": "sector17"
-    })
+df = df.rename(columns={
+    "コード": "code",
+    "銘柄名": "name",
+    "市場・商品区分": "market",
+    "17業種区分": "sector17",
+    "指数採用区分": "index"
+})
 
     df["code"] = df["code"].astype(str).str.zfill(4)
     df["sector17"] = df["sector17"].astype(str).str.strip()
@@ -58,27 +59,15 @@ from bs4 import BeautifulSoup
 
 
 def load_nikkei225_list():
-    url = "https://query2.finance.yahoo.com/v1/finance/quoteSummary/%5EN225?modules=components"
+    df = load_jpx_list()
 
-    try:
-        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        data = r.json()
+    # JPX公式Excelの「指数採用区分」列から日経225を抽出
+    df_225 = df[df["index"].astype(str).str.contains("日経225", na=False)]
 
-        comps = data["quoteSummary"]["result"][0]["components"]["components"]
+    codes = df_225["code"].tolist()
 
-        codes = []
-        for c in comps:
-            symbol = c.get("symbol", "")
-            if symbol.endswith(".T"):
-                codes.append(symbol.replace(".T", ""))
-
-        print(f"日経225構成銘柄数: {len(codes)}")
-        return codes
-
-    except Exception as e:
-        print("日経225構成銘柄取得エラー:", e)
-        return []
+    print(f"JPX公式から取得した日経225銘柄数: {len(codes)}")
+    return codes
 
 
 
