@@ -58,26 +58,26 @@ from bs4 import BeautifulSoup
 
 
 def load_nikkei225_list():
-    url = "https://query2.finance.yahoo.com/v1/finance/quoteSummary/1321.T?modules=holdings"
+    url = "https://query2.finance.yahoo.com/v1/finance/quoteSummary/%5EN225?modules=components"
 
     try:
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
         data = r.json()
 
-        holdings = data["quoteSummary"]["result"][0]["holdings"]["holdings"]
+        comps = data["quoteSummary"]["result"][0]["components"]["components"]
 
         codes = []
-        for h in holdings:
-            symbol = h.get("symbol", "")
+        for c in comps:
+            symbol = c.get("symbol", "")
             if symbol.endswith(".T"):
                 codes.append(symbol.replace(".T", ""))
 
-        print(f"日経225銘柄数: {len(codes)}")
+        print(f"日経225構成銘柄数: {len(codes)}")
         return codes
 
     except Exception as e:
-        print("日経225銘柄取得エラー:", e)
+        print("日経225構成銘柄取得エラー:", e)
         return []
 
 
